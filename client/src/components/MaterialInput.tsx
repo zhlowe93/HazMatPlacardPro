@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Plus } from "lucide-react";
+import { getHazardClassOptions } from "@/lib/hazmat-data";
 
 interface MaterialInputProps {
   onAddMaterial: (material: {
@@ -23,22 +24,7 @@ interface MaterialInputProps {
   }) => void;
 }
 
-const hazardClasses = [
-  { value: "1", label: "Class 1 - Explosives" },
-  { value: "2.1", label: "Class 2.1 - Flammable Gas" },
-  { value: "2.2", label: "Class 2.2 - Non-Flammable Gas" },
-  { value: "2.3", label: "Class 2.3 - Poison Gas" },
-  { value: "3", label: "Class 3 - Flammable Liquid" },
-  { value: "4.1", label: "Class 4.1 - Flammable Solid" },
-  { value: "4.2", label: "Class 4.2 - Spontaneously Combustible" },
-  { value: "4.3", label: "Class 4.3 - Dangerous When Wet" },
-  { value: "5.1", label: "Class 5.1 - Oxidizer" },
-  { value: "5.2", label: "Class 5.2 - Organic Peroxide" },
-  { value: "6.1", label: "Class 6.1 - Poison" },
-  { value: "7", label: "Class 7 - Radioactive" },
-  { value: "8", label: "Class 8 - Corrosive" },
-  { value: "9", label: "Class 9 - Miscellaneous" },
-];
+const hazardClasses = getHazardClassOptions();
 
 const packingGroups = [
   { value: "I", label: "Packing Group I - High Danger" },

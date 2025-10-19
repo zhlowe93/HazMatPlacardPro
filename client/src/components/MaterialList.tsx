@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
+import { getPlacardColor, isTable1Material } from "@/lib/hazmat-data";
 
 interface Material {
   id: string;
@@ -19,17 +20,13 @@ interface MaterialListProps {
 }
 
 const getHazardClassColor = (hazardClass: string): string => {
+  const baseColor = getPlacardColor(hazardClass);
   const classNum = parseFloat(hazardClass);
-  if (classNum === 1) return "bg-orange-500 text-white";
-  if (classNum >= 2 && classNum < 3) return "bg-yellow-500 text-black";
-  if (classNum === 3) return "bg-red-500 text-white";
-  if (classNum >= 4 && classNum < 5) return "bg-blue-500 text-white";
-  if (classNum >= 5 && classNum < 6) return "bg-yellow-400 text-black";
-  if (classNum >= 6 && classNum < 7) return "bg-white text-black border border-black";
-  if (classNum === 7) return "bg-yellow-300 text-black";
-  if (classNum === 8) return "bg-white text-black border border-black";
-  if (classNum === 9) return "bg-white text-black border border-black";
-  return "bg-gray-500 text-white";
+  
+  if (baseColor.includes("white")) return `${baseColor} text-black border border-black`;
+  if (classNum >= 5 && classNum < 6) return `${baseColor} text-black`;
+  if (classNum === 7) return `${baseColor} text-black`;
+  return `${baseColor} text-white`;
 };
 
 export default function MaterialList({ materials, onRemoveMaterial }: MaterialListProps) {
@@ -82,6 +79,11 @@ export default function MaterialList({ materials, onRemoveMaterial }: MaterialLi
                   <Badge variant="outline" className="font-mono text-sm">
                     {material.unNumber}
                   </Badge>
+                  {isTable1Material(material.hazardClass) && (
+                    <Badge variant="destructive" className="text-xs">
+                      Table 1
+                    </Badge>
+                  )}
                 </div>
                 
                 <h3 className="font-semibold text-lg" data-testid={`text-material-name-${material.id}`}>

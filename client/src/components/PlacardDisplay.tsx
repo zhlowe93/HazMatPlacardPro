@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { getPlacardColor, isTable1Material, getHazardClassInfo } from "@/lib/hazmat-data";
 
 interface Material {
   id: string;
@@ -22,21 +23,8 @@ interface PlacardRequirement {
   required: boolean;
   reason: string;
   color: string;
+  isTable1: boolean;
 }
-
-const getPlacardColor = (hazardClass: string): string => {
-  const classNum = parseFloat(hazardClass);
-  if (classNum === 1) return "bg-orange-500";
-  if (classNum >= 2 && classNum < 3) return "bg-yellow-500";
-  if (classNum === 3) return "bg-red-500";
-  if (classNum >= 4 && classNum < 5) return "bg-blue-500";
-  if (classNum >= 5 && classNum < 6) return "bg-yellow-400";
-  if (classNum >= 6 && classNum < 7) return "bg-white";
-  if (classNum === 7) return "bg-yellow-300";
-  if (classNum === 8) return "bg-white";
-  if (classNum === 9) return "bg-white";
-  return "bg-gray-500";
-};
 
 const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement[] => {
   const classTotals = new Map<string, number>();
@@ -48,18 +36,28 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
   });
 
   const requirements: PlacardRequirement[] = [];
-  const threshold = 1001;
+  const table2Threshold = 1001;
 
   classTotals.forEach((weight, hazardClass) => {
-    const required = weight >= threshold;
+    const isTable1 = isTable1Material(hazardClass);
+    const required = isTable1 || weight >= table2Threshold;
+    
+    let reason = "";
+    if (isTable1) {
+      reason = `Table 1 material - placard required at any quantity (${weight.toFixed(0)} lbs)`;
+    } else if (required) {
+      reason = `${weight.toFixed(0)} lbs exceeds ${table2Threshold} lbs threshold (Table 2)`;
+    } else {
+      reason = `${weight.toFixed(0)} lbs below ${table2Threshold} lbs threshold (Table 2)`;
+    }
+
     requirements.push({
       hazardClass,
       label: `Class ${hazardClass}`,
       required,
-      reason: required
-        ? `${weight.toFixed(0)} lbs exceeds ${threshold} lbs threshold`
-        : `${weight.toFixed(0)} lbs below ${threshold} lbs threshold`,
+      reason,
       color: getPlacardColor(hazardClass),
+      isTable1,
     });
   });
 
@@ -114,7 +112,14 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
                   </div>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold text-sm">{req.label}</p>
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <p className="font-semibold text-sm">{req.label}</p>
+                    {req.isTable1 && (
+                      <Badge variant="destructive" className="text-xs">
+                        Table 1
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">{req.reason}</p>
                 </div>
               </div>
@@ -130,7 +135,7 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
                 No Placards Required
               </h3>
               <p className="text-sm text-muted-foreground">
-                All materials are below the 1,001 lbs threshold
+                All materials are below the 1,001 lbs threshold (Table 2)
               </p>
             </div>
           </div>
@@ -161,11 +166,18 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
       )}
 
       <Card className="p-4 bg-muted">
-        <p className="text-xs text-muted-foreground">
-          <strong>CFR 49 Regulation:</strong> Placards are required when transporting 1,001 pounds
-          or more of a hazardous material of any single hazard class. Table 2 materials may have
-          different requirements. Always verify with current DOT regulations.
-        </p>
+        <h4 className="text-sm font-semibold mb-2">CFR 49 Regulation Summary</h4>
+        <div className="space-y-1 text-xs text-muted-foreground">
+          <p>
+            <strong>Table 1 Materials:</strong> Placard required at any quantity (e.g., Class 2.3 Poison Gas, Class 4.3 Dangerous When Wet, certain Explosives)
+          </p>
+          <p>
+            <strong>Table 2 Materials:</strong> Placard required when transporting 1,001 pounds or more of a single hazard class
+          </p>
+          <p className="mt-2">
+            Always verify with current DOT regulations and your shipping papers. Some materials may have additional requirements.
+          </p>
+        </div>
       </Card>
     </div>
   );

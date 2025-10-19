@@ -20,15 +20,17 @@ Fully functional prototype with client-side state management. The app is ready f
 - Add/remove hazardous materials with detailed classification
 - Track multiple materials in a single load
 - Real-time weight and material count totals
-- Support for all 14 DOT hazard classes (1, 2.1, 2.2, 2.3, 3, 4.1, 4.2, 4.3, 5.1, 5.2, 6.1, 7, 8, 9)
+- Support for all DOT hazard classes including explosive divisions (1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 3, 4.1, 4.2, 4.3, 5.1, 5.2, 6.1, 7, 8, 9)
 - Packing group classifications (I, II, III, N/A)
+- Visual "Table 1" badges on materials requiring placards at any quantity
 
 ### Placard Calculator
-- CFR 49 compliant calculations
-- 1,001 lbs threshold per hazard class
+- CFR 49 compliant calculations with proper Table 1/Table 2 logic
+- **Table 1 Materials**: Placard required at any quantity (Class 1.1, 1.2, 1.3, 2.3, 4.3)
+- **Table 2 Materials**: Placard required when aggregate weight exceeds 1,001 lbs
 - Clear visual indication of required vs. not required placards
 - Color-coded placard displays matching DOT standards
-- Explanations for each requirement decision
+- Detailed explanations showing whether requirement is due to Table 1 (any quantity) or Table 2 (weight threshold)
 
 ### Reference Guide
 - Comprehensive hazard class information
@@ -82,8 +84,9 @@ Designed specifically for use in truck cabs with:
 
 ### Regulatory Compliance
 - Based on CFR 49 DOT regulations
-- 1,001 lbs threshold per hazard class
-- Covers all 14 standard hazard classifications
+- Properly implements Table 1 (any quantity) and Table 2 (1,001+ lbs) requirements
+- Covers all standard hazard classifications including explosive divisions
+- Accurate placard color coding per DOT standards
 - Includes disclaimer to verify with current DOT regulations
 
 ## Future Enhancements (Not in MVP)
@@ -103,5 +106,10 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
 - Material input, calculation, and display features
 - Reference guide with all hazard classes
 - Theme support (light/dark mode)
+- **Updated placard logic to properly handle DOT Table 1 and Table 2 requirements**:
+  - Table 1 materials (Classes 1.1, 1.2, 1.3, 2.3, 4.3) require placards at any quantity
+  - Table 2 materials require placards only above 1,001 lbs aggregate weight
+  - Visual "Table 1" badges throughout the app
+  - Updated reference guide with placard requirement details for each class
 - Comprehensive end-to-end testing completed
-- All core features verified and working
+- All core features verified and working with correct DOT compliance
