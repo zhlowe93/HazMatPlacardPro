@@ -18,23 +18,27 @@ Fully functional prototype with client-side state management. The app is ready f
 
 ### Material Management
 - Add/remove hazardous materials with detailed classification
+- **Container type selection**: Bulk vs Non-Bulk with capacity thresholds
 - Track multiple materials in a single load
 - Real-time weight and material count totals
 - Support for all DOT hazard classes including explosive divisions (1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 3, 4.1, 4.2, 4.3, 5.1, 5.2, 6.1, 7, 8, 9)
 - Packing group classifications (I, II, III, N/A)
-- Visual "Table 1" badges on materials requiring placards at any quantity
+- Visual "Table 1" and "Bulk" badges on materials
 
 ### Placard Calculator
-- CFR 49 compliant calculations with proper Table 1/Table 2 logic
+- CFR 49 compliant calculations with proper Table 1/Table 2 and bulk/non-bulk logic
 - **Table 1 Materials**: Placard required at any quantity (Class 1.1, 1.2, 1.3, 2.3, 4.3)
-- **Table 2 Materials**: Placard required when aggregate weight exceeds 1,001 lbs
+- **Table 2 Bulk Containers**: Placard required at ANY quantity (>119 gal liquid, >882 lbs solid, >1,000 lbs gas)
+- **Table 2 Non-Bulk Containers**: Placard required when aggregate weight exceeds 1,001 lbs
 - Clear visual indication of required vs. not required placards
 - Color-coded placard displays matching DOT standards
-- Detailed explanations showing whether requirement is due to Table 1 (any quantity) or Table 2 (weight threshold)
+- Detailed explanations showing requirement type (Table 1, bulk, or weight threshold)
 
 ### Reference Guide
 - Comprehensive hazard class information
+- **Bulk vs Non-Bulk container explanations** with capacity thresholds
 - Descriptions, examples, and placard colors for each class
+- Table 1 vs Table 2 placard requirement details
 - Accordion interface for easy navigation
 - Quick reference for common materials
 
@@ -67,6 +71,7 @@ See `shared/schema.ts` for the HazmatMaterial type:
 - Material Name
 - Hazard Class
 - Packing Group
+- Container Type (bulk | non-bulk)
 - Weight (decimal)
 - Quantity (integer)
 
@@ -84,7 +89,9 @@ Designed specifically for use in truck cabs with:
 
 ### Regulatory Compliance
 - Based on CFR 49 DOT regulations
-- Properly implements Table 1 (any quantity) and Table 2 (1,001+ lbs) requirements
+- Properly implements Table 1 (any quantity) and Table 2 requirements
+- **Correctly handles bulk container rules**: Table 2 bulk = placard at any quantity
+- **Bulk container thresholds**: >119 gallons liquid, >882 lbs solid, >1,000 lbs gas capacity
 - Covers all standard hazard classifications including explosive divisions
 - Accurate placard color coding per DOT standards
 - Includes disclaimer to verify with current DOT regulations
@@ -100,7 +107,7 @@ Designed specifically for use in truck cabs with:
 ## Running the Project
 The workflow "Start application" runs `npm run dev` which starts both the Express backend and Vite frontend on port 5000.
 
-## Recent Changes (October 19, 2025)
+## Recent Changes (October 22, 2025)
 - Initial project creation
 - Complete frontend prototype implemented
 - Material input, calculation, and display features
@@ -108,8 +115,14 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
 - Theme support (light/dark mode)
 - **Updated placard logic to properly handle DOT Table 1 and Table 2 requirements**:
   - Table 1 materials (Classes 1.1, 1.2, 1.3, 2.3, 4.3) require placards at any quantity
-  - Table 2 materials require placards only above 1,001 lbs aggregate weight
+  - Table 2 materials require placards only above 1,001 lbs aggregate weight (non-bulk)
   - Visual "Table 1" badges throughout the app
   - Updated reference guide with placard requirement details for each class
-- Comprehensive end-to-end testing completed
+- **Added bulk vs non-bulk container type selection**:
+  - Container type dropdown with bulk capacity threshold helper text
+  - Table 2 bulk containers require placards at ANY quantity (critical DOT rule)
+  - Visual "Bulk" badges on materials and placards
+  - Updated calculation logic to handle bulk/non-bulk distinction
+  - New reference section explaining bulk container definitions and rules
+- Comprehensive end-to-end testing completed for all scenarios
 - All core features verified and working with correct DOT compliance
