@@ -22,6 +22,7 @@ interface MaterialInputProps {
     weight: string;
     quantity: number;
     containerType: "bulk" | "non-bulk";
+    stopNumber: number;
   }) => void;
 }
 
@@ -45,6 +46,7 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
   const [hazardClass, setHazardClass] = useState("");
   const [packingGroup, setPackingGroup] = useState("");
   const [containerType, setContainerType] = useState<"bulk" | "non-bulk">("non-bulk");
+  const [stopNumber, setStopNumber] = useState(1);
   const [weight, setWeight] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -57,6 +59,7 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
         hazardClass,
         packingGroup,
         containerType,
+        stopNumber,
         weight,
         quantity,
       });
@@ -169,6 +172,24 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
             <strong>Bulk container</strong> = container <em>capacity</em> exceeds: 119 gallons (liquid), 882 lbs (solid), or 1,000 lbs (gas).
             <br />
             <strong>Critical:</strong> Table 2 materials in bulk containers require placards <em>regardless of how much material is inside</em>.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="stop-number" className="text-base font-medium">
+            Stop Number (Loading Location)
+          </Label>
+          <Input
+            id="stop-number"
+            data-testid="input-stop-number"
+            type="number"
+            min="1"
+            value={stopNumber}
+            onChange={(e) => setStopNumber(parseInt(e.target.value) || 1)}
+            className="h-12 text-base font-mono"
+          />
+          <p className="text-xs text-muted-foreground">
+            Track which pickup location this material came from. DOT requires specific placards for classes exceeding 2,205 lbs <strong>at a single loading facility</strong>.
           </p>
         </div>
 
