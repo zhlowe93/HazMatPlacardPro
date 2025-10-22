@@ -30,6 +30,9 @@ Fully functional prototype with client-side state management. The app is ready f
 - **Table 1 Materials**: Placard required at any quantity (Class 1.1, 1.2, 1.3, 2.3, 4.3)
 - **Table 2 Bulk Containers**: Placard required at ANY quantity (>119 gal liquid, >882 lbs solid, >1,000 lbs gas)
 - **Table 2 Non-Bulk Containers**: Placard required when aggregate weight exceeds 1,001 lbs
+- **DANGEROUS Placard Option**: Shows when drivers can use DANGEROUS placard as optional alternative (49 CFR 172.504(e))
+  - Available for non-bulk, multiple Table 2 classes, no Table 1 materials
+  - Highlights when specific placards must still be displayed (≥2,205 lbs)
 - Clear visual indication of required vs. not required placards
 - Color-coded placard displays matching DOT standards
 - Detailed explanations showing requirement type (Table 1, bulk, or weight threshold)
@@ -37,6 +40,7 @@ Fully functional prototype with client-side state management. The app is ready f
 ### Reference Guide
 - Comprehensive hazard class information
 - **Bulk vs Non-Bulk container explanations** with capacity thresholds
+- **DANGEROUS placard rules** with all conditions and examples (49 CFR 172.504(e))
 - Descriptions, examples, and placard colors for each class
 - Table 1 vs Table 2 placard requirement details
 - Accordion interface for easy navigation
@@ -124,5 +128,12 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
   - Visual "Bulk" badges on materials and placards
   - Updated calculation logic to handle bulk/non-bulk distinction
   - New reference section explaining bulk container definitions and rules
+  - Clarified that bulk is based on container CAPACITY, not material weight
+- **Added DANGEROUS placard option (49 CFR 172.504(e))**:
+  - Shows when drivers can use DANGEROUS placard as optional alternative
+  - Eligible when: non-bulk only, 2+ Table 2 classes, no Table 1 materials
+  - Highlights specific placards that must still be displayed if any class ≥2,205 lbs
+  - Amber-colored card with clear eligibility explanation
+  - Reference guide includes all DANGEROUS rules with examples
 - Comprehensive end-to-end testing completed for all scenarios
 - All core features verified and working with correct DOT compliance
