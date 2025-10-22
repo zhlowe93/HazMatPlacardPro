@@ -13,6 +13,7 @@ interface Material {
   weight: string;
   quantity: number;
   containerType: "bulk" | "non-bulk";
+  stopNumber: number;
 }
 
 interface MaterialListProps {
@@ -79,6 +80,9 @@ export default function MaterialList({ materials, onRemoveMaterial }: MaterialLi
                   </Badge>
                   <Badge variant="outline" className="font-mono text-sm">
                     {material.unNumber}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs font-mono" data-testid={`badge-stop-${material.id}`}>
+                    Stop {material.stopNumber}
                   </Badge>
                   {isTable1Material(material.hazardClass) && (
                     <Badge variant="destructive" className="text-xs">
