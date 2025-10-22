@@ -16,6 +16,7 @@ interface Material {
   weight: string;
   quantity: number;
   containerType: "bulk" | "non-bulk";
+  stopNumber: number;
 }
 
 export default function Home() {
