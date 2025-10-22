@@ -26,7 +26,83 @@ interface PlacardRequirement {
   color: string;
   isTable1: boolean;
   isBulk: boolean;
+  weight: number;
 }
+
+interface DangerousPlacardEligibility {
+  canUse: boolean;
+  reason: string;
+  specificPlacardRequired: string[];
+}
+
+const calculateDangerousPlacardEligibility = (
+  requirements: PlacardRequirement[],
+  materials: Material[]
+): DangerousPlacardEligibility => {
+  const requiredPlacards = requirements.filter((r) => r.required);
+  const hasTable1 = requirements.some((r) => r.isTable1);
+  const hasBulk = materials.some((m) => m.containerType === "bulk");
+  
+  // Check ALL Table 2 classes present (not just required ones)
+  const allTable2Classes = requirements.filter((r) => !r.isTable1);
+  const requiredTable2Classes = allTable2Classes.filter((r) => r.required);
+  const over2205lbs = allTable2Classes.filter((r) => r.weight >= 2205);
+
+  // Cannot use DANGEROUS if any Table 1 material
+  if (hasTable1) {
+    return {
+      canUse: false,
+      reason: "Cannot use DANGEROUS placard when Table 1 materials are present (must use specific placards)",
+      specificPlacardRequired: [],
+    };
+  }
+
+  // Cannot use DANGEROUS if any bulk containers
+  if (hasBulk) {
+    return {
+      canUse: false,
+      reason: "Cannot use DANGEROUS placard when bulk containers are present (must use specific placards)",
+      specificPlacardRequired: [],
+    };
+  }
+
+  // Need at least 2 different Table 2 classes AND at least one must meet placard threshold
+  if (allTable2Classes.length < 2) {
+    return {
+      canUse: false,
+      reason: allTable2Classes.length === 0 
+        ? "No placards required"
+        : "DANGEROUS placard only applies when multiple different Table 2 hazard classes are present",
+      specificPlacardRequired: [],
+    };
+  }
+
+  // Need at least one class to meet the placard threshold
+  if (requiredTable2Classes.length === 0) {
+    return {
+      canUse: false,
+      reason: "No placards required (all below 1,001 lbs threshold)",
+      specificPlacardRequired: [],
+    };
+  }
+
+  // If any class >= 2,205 lbs, must display that specific placard
+  if (over2205lbs.length > 0) {
+    const specificClasses = over2205lbs.map((r) => r.label);
+    return {
+      canUse: true,
+      reason: `DANGEROUS placard may be used for remaining classes, but ${specificClasses.join(", ")} must display specific placard(s) (≥2,205 lbs)`,
+      specificPlacardRequired: specificClasses,
+    };
+  }
+
+  // Eligible to use DANGEROUS for all classes
+  return {
+    canUse: true,
+    reason: "DANGEROUS placard may be used instead of specific placards (non-bulk, multiple Table 2 classes, all <2,205 lbs)",
+    specificPlacardRequired: [],
+  };
+};
 
 const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement[] => {
   const classTotals = new Map<string, number>();
@@ -70,6 +146,7 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
       color: getPlacardColor(hazardClass),
       isTable1,
       isBulk: hasBulk,
+      weight,
     });
   });
 
@@ -90,9 +167,58 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
   const requirements = calculatePlacardRequirements(materials);
   const requiredPlacards = requirements.filter((r) => r.required);
   const notRequired = requirements.filter((r) => !r.required);
+  const dangerousEligibility = calculateDangerousPlacardEligibility(requirements, materials);
 
   return (
     <div className="space-y-6">
+      {dangerousEligibility.canUse && (
+        <Card className="p-6 border-2 border-amber-500 bg-amber-50 dark:bg-amber-950">
+          <div className="flex items-start gap-3 mb-4">
+            <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-100" data-testid="text-dangerous-option">
+                DANGEROUS Placard Option Available
+              </h3>
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                {dangerousEligibility.reason}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="bg-amber-400 border-4 border-black aspect-square rounded-md flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-black">
+                    DANGEROUS
+                  </div>
+                </div>
+              </div>
+              <div className="text-center">
+                <Badge variant="outline" className="text-xs border-amber-600 text-amber-900 dark:text-amber-100">
+                  Optional Alternative
+                </Badge>
+                <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                  May replace specific placards shown below{dangerousEligibility.specificPlacardRequired.length > 0 && " (except those ≥2,205 lbs)"}
+                </p>
+              </div>
+            </div>
+
+            {dangerousEligibility.specificPlacardRequired.length > 0 && (
+              <div className="space-y-2">
+                <div className="bg-muted aspect-square rounded-md flex items-center justify-center p-4 border-2 border-dashed">
+                  <p className="text-xs text-center text-muted-foreground">
+                    <strong>Still Required:</strong><br />
+                    {dangerousEligibility.specificPlacardRequired.join(", ")}<br />
+                    (≥2,205 lbs)
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
       {requiredPlacards.length > 0 ? (
         <Card className="p-6 border-2 border-primary">
           <div className="flex items-start gap-3 mb-4">

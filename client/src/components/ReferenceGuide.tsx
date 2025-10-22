@@ -101,6 +101,39 @@ export default function ReferenceGuide() {
         </div>
       </Card>
 
+      <Card className="p-6 bg-amber-50 dark:bg-amber-950 border-2 border-amber-500">
+        <h3 className="font-semibold mb-2 text-base text-amber-900 dark:text-amber-100">DANGEROUS Placard Option (49 CFR 172.504(e))</h3>
+        <div className="space-y-3 text-sm text-amber-800 dark:text-amber-200">
+          <p className="font-medium">
+            The DANGEROUS placard may be used as an <strong>optional alternative</strong> to specific placards when ALL conditions are met:
+          </p>
+          <div className="space-y-2 pl-4">
+            <div className="flex gap-2">
+              <span className="font-semibold shrink-0">✓ Non-bulk only:</span>
+              <span>All materials must be in non-bulk containers</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="font-semibold shrink-0">✓ Multiple classes:</span>
+              <span>Two or more different Table 2 hazard classes present</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="font-semibold shrink-0">✓ No Table 1:</span>
+              <span>Cannot use if any Table 1 material is present</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="font-semibold shrink-0">✓ Weight limit:</span>
+              <span>If any single class ≥2,205 lbs, that class must display its specific placard (DANGEROUS may be used for the remaining classes)</span>
+            </div>
+          </div>
+          <div className="pt-2 space-y-1 text-xs bg-background/50 p-3 rounded">
+            <p className="font-semibold">Examples:</p>
+            <p>• 1,200 lbs Class 3 + 800 lbs Class 8 (non-bulk) = <strong>May use DANGEROUS</strong> instead of both specific placards</p>
+            <p>• 2,500 lbs Class 8 + 600 lbs Class 3 (non-bulk) = <strong>Must display Class 8 placard</strong>, may use DANGEROUS for Class 3</p>
+            <p>• 1,500 lbs Class 3 in bulk tanker + 800 lbs Class 8 = <strong>Cannot use DANGEROUS</strong> (bulk present)</p>
+          </div>
+        </div>
+      </Card>
+
       <Card className="p-6 bg-muted">
         <h3 className="font-semibold mb-2 text-base">Placard Requirements Summary</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
