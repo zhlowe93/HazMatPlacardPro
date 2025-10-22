@@ -11,6 +11,7 @@ interface Material {
   packingGroup: string;
   weight: string;
   quantity: number;
+  containerType: "bulk" | "non-bulk";
 }
 
 interface PlacardDisplayProps {
@@ -24,15 +25,21 @@ interface PlacardRequirement {
   reason: string;
   color: string;
   isTable1: boolean;
+  isBulk: boolean;
 }
 
 const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement[] => {
   const classTotals = new Map<string, number>();
+  const classHasBulk = new Map<string, boolean>();
   
   materials.forEach((material) => {
     const total = parseFloat(material.weight) * material.quantity;
     const current = classTotals.get(material.hazardClass) || 0;
     classTotals.set(material.hazardClass, current + total);
+    
+    if (material.containerType === "bulk") {
+      classHasBulk.set(material.hazardClass, true);
+    }
   });
 
   const requirements: PlacardRequirement[] = [];
@@ -40,15 +47,19 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
 
   classTotals.forEach((weight, hazardClass) => {
     const isTable1 = isTable1Material(hazardClass);
-    const required = isTable1 || weight >= table2Threshold;
+    const hasBulk = classHasBulk.get(hazardClass) || false;
+    
+    const required = isTable1 || (hasBulk && !isTable1) || weight >= table2Threshold;
     
     let reason = "";
     if (isTable1) {
       reason = `Table 1 material - placard required at any quantity (${weight.toFixed(0)} lbs)`;
+    } else if (hasBulk) {
+      reason = `Bulk container (Table 2) - placard required at any quantity (${weight.toFixed(0)} lbs)`;
     } else if (required) {
-      reason = `${weight.toFixed(0)} lbs exceeds ${table2Threshold} lbs threshold (Table 2)`;
+      reason = `${weight.toFixed(0)} lbs exceeds ${table2Threshold} lbs threshold (Table 2, non-bulk)`;
     } else {
-      reason = `${weight.toFixed(0)} lbs below ${table2Threshold} lbs threshold (Table 2)`;
+      reason = `${weight.toFixed(0)} lbs below ${table2Threshold} lbs threshold (Table 2, non-bulk)`;
     }
 
     requirements.push({
@@ -58,6 +69,7 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
       reason,
       color: getPlacardColor(hazardClass),
       isTable1,
+      isBulk: hasBulk,
     });
   });
 
@@ -112,11 +124,16 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 mb-1">
+                  <div className="flex items-center justify-center gap-1 mb-1 flex-wrap">
                     <p className="font-semibold text-sm">{req.label}</p>
                     {req.isTable1 && (
                       <Badge variant="destructive" className="text-xs">
                         Table 1
+                      </Badge>
+                    )}
+                    {req.isBulk && !req.isTable1 && (
+                      <Badge variant="secondary" className="text-xs">
+                        Bulk
                       </Badge>
                     )}
                   </div>

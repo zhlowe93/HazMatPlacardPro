@@ -69,6 +69,33 @@ export default function ReferenceGuide() {
         </Accordion>
       </Card>
 
+      <Card className="p-6 bg-accent">
+        <h3 className="font-semibold mb-2 text-base">Bulk vs Non-Bulk Containers</h3>
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            The container type significantly affects placard requirements for <strong>Table 2 materials</strong>:
+          </p>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <span className="font-semibold shrink-0">• Bulk Container:</span>
+              <span>
+                Capacity exceeds 119 gallons (liquid), 882 lbs (solid), or 1,000 lbs (gas).
+                <strong> Table 2 materials in bulk containers require placards at any quantity.</strong>
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <span className="font-semibold shrink-0">• Non-Bulk Container:</span>
+              <span>
+                Smaller containers. Table 2 materials require placards only when aggregate weight exceeds 1,001 lbs per hazard class.
+              </span>
+            </div>
+          </div>
+          <p className="pt-2 text-xs">
+            <strong>Note:</strong> Table 1 materials always require placards regardless of container type or quantity.
+          </p>
+        </div>
+      </Card>
+
       <Card className="p-6 bg-muted">
         <h3 className="font-semibold mb-2 text-base">Placard Requirements Summary</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
@@ -77,7 +104,11 @@ export default function ReferenceGuide() {
             <span>Materials requiring placards at any quantity (marked with red "Table 1" badge)</span>
           </li>
           <li className="flex gap-2">
-            <span className="font-semibold shrink-0">• Table 2:</span>
+            <span className="font-semibold shrink-0">• Table 2 (Bulk):</span>
+            <span>Placard required at any quantity when transported in bulk containers</span>
+          </li>
+          <li className="flex gap-2">
+            <span className="font-semibold shrink-0">• Table 2 (Non-Bulk):</span>
             <span>Placard required when aggregate weight of a single hazard class exceeds 1,001 lbs</span>
           </li>
           <li className="flex gap-2">

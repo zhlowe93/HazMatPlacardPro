@@ -21,6 +21,7 @@ interface MaterialInputProps {
     packingGroup: string;
     weight: string;
     quantity: number;
+    containerType: "bulk" | "non-bulk";
   }) => void;
 }
 
@@ -33,11 +34,17 @@ const packingGroups = [
   { value: "N/A", label: "N/A - Not Applicable" },
 ];
 
+const containerTypes = [
+  { value: "non-bulk", label: "Non-Bulk Container" },
+  { value: "bulk", label: "Bulk Container" },
+];
+
 export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
   const [unNumber, setUnNumber] = useState("");
   const [materialName, setMaterialName] = useState("");
   const [hazardClass, setHazardClass] = useState("");
   const [packingGroup, setPackingGroup] = useState("");
+  const [containerType, setContainerType] = useState<"bulk" | "non-bulk">("non-bulk");
   const [weight, setWeight] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -49,6 +56,7 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
         materialName,
         hazardClass,
         packingGroup,
+        containerType,
         weight,
         quantity,
       });
@@ -56,6 +64,7 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
       setMaterialName("");
       setHazardClass("");
       setPackingGroup("");
+      setContainerType("non-bulk");
       setWeight("");
       setQuantity(1);
     }
@@ -134,6 +143,33 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="container-type" className="text-base font-medium">
+            Container Type
+          </Label>
+          <Select value={containerType} onValueChange={(value) => setContainerType(value as "bulk" | "non-bulk")}>
+            <SelectTrigger
+              id="container-type"
+              data-testid="select-container-type"
+              className="h-12 text-base"
+            >
+              <SelectValue placeholder="Select container type" />
+            </SelectTrigger>
+            <SelectContent>
+              {containerTypes.map((ct) => (
+                <SelectItem key={ct.value} value={ct.value}>
+                  {ct.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            <strong>Bulk:</strong> &gt;119 gal liquid, &gt;882 lbs solid, &gt;1,000 lbs gas capacity.
+            <br />
+            <strong>Table 2 bulk containers require placards at any quantity.</strong>
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

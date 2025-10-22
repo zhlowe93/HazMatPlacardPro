@@ -11,6 +11,7 @@ export const hazmatMaterials = pgTable("hazmat_materials", {
   packingGroup: text("packing_group"),
   weight: decimal("weight", { precision: 10, scale: 2 }).notNull(),
   quantity: integer("quantity").notNull().default(1),
+  containerType: text("container_type").notNull().default("non-bulk"),
 });
 
 export const insertHazmatMaterialSchema = createInsertSchema(hazmatMaterials).omit({

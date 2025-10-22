@@ -12,6 +12,7 @@ interface Material {
   packingGroup: string;
   weight: string;
   quantity: number;
+  containerType: "bulk" | "non-bulk";
 }
 
 interface MaterialListProps {
@@ -82,6 +83,11 @@ export default function MaterialList({ materials, onRemoveMaterial }: MaterialLi
                   {isTable1Material(material.hazardClass) && (
                     <Badge variant="destructive" className="text-xs">
                       Table 1
+                    </Badge>
+                  )}
+                  {material.containerType === "bulk" && (
+                    <Badge variant="secondary" className="text-xs">
+                      Bulk
                     </Badge>
                   )}
                 </div>

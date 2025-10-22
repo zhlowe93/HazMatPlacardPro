@@ -15,6 +15,7 @@ interface Material {
   packingGroup: string;
   weight: string;
   quantity: number;
+  containerType: "bulk" | "non-bulk";
 }
 
 export default function Home() {
