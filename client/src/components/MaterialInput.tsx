@@ -166,9 +166,9 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
-            <strong>Bulk:</strong> &gt;119 gal liquid, &gt;882 lbs solid, &gt;1,000 lbs gas capacity.
+            <strong>Bulk container</strong> = container <em>capacity</em> exceeds: 119 gallons (liquid), 882 lbs (solid), or 1,000 lbs (gas).
             <br />
-            <strong>Table 2 bulk containers require placards at any quantity.</strong>
+            <strong>Critical:</strong> Table 2 materials in bulk containers require placards <em>regardless of how much material is inside</em>.
           </p>
         </div>
 

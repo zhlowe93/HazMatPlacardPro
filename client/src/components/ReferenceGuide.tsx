@@ -72,23 +72,28 @@ export default function ReferenceGuide() {
       <Card className="p-6 bg-accent">
         <h3 className="font-semibold mb-2 text-base">Bulk vs Non-Bulk Containers</h3>
         <div className="space-y-3 text-sm text-muted-foreground">
-          <p>
-            The container type significantly affects placard requirements for <strong>Table 2 materials</strong>:
+          <p className="font-medium">
+            <strong>Critical distinction:</strong> Bulk classification is based on <em>container capacity</em>, not material weight.
           </p>
           <div className="space-y-2">
             <div className="flex gap-2">
               <span className="font-semibold shrink-0">• Bulk Container:</span>
               <span>
-                Capacity exceeds 119 gallons (liquid), 882 lbs (solid), or 1,000 lbs (gas).
-                <strong> Table 2 materials in bulk containers require placards at any quantity.</strong>
+                Container <em>capacity</em> exceeds 119 gallons (liquid), 882 lbs (solid), or 1,000 lbs (gas).
+                <strong> Table 2 materials in bulk containers require placards regardless of how much material is inside.</strong>
               </span>
             </div>
             <div className="flex gap-2">
               <span className="font-semibold shrink-0">• Non-Bulk Container:</span>
               <span>
-                Smaller containers. Table 2 materials require placards only when aggregate weight exceeds 1,001 lbs per hazard class.
+                Smaller capacity containers. Table 2 materials require placards only when aggregate <em>weight</em> exceeds 1,001 lbs per hazard class.
               </span>
             </div>
+          </div>
+          <div className="pt-2 space-y-1 text-xs bg-background/50 p-3 rounded">
+            <p className="font-semibold">Examples:</p>
+            <p>• 500-gallon tanker (bulk) with 200 lbs Class 3 = <strong>PLACARD REQUIRED</strong> (bulk container)</p>
+            <p>• 50-gallon drum (non-bulk) with 900 lbs Class 3 = <strong>NO PLACARD</strong> (below 1,001 lbs)</p>
           </div>
           <p className="pt-2 text-xs">
             <strong>Note:</strong> Table 1 materials always require placards regardless of container type or quantity.
