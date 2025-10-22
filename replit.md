@@ -19,11 +19,12 @@ Fully functional prototype with client-side state management. The app is ready f
 ### Material Management
 - Add/remove hazardous materials with detailed classification
 - **Container type selection**: Bulk vs Non-Bulk with capacity thresholds
-- Track multiple materials in a single load
+- **Stop number tracking**: Record which pickup location (stop 1, stop 2, etc.) each material was loaded at
+- Track multiple materials in a single load throughout the day
 - Real-time weight and material count totals
 - Support for all DOT hazard classes including explosive divisions (1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 3, 4.1, 4.2, 4.3, 5.1, 5.2, 6.1, 7, 8, 9)
 - Packing group classifications (I, II, III, N/A)
-- Visual "Table 1" and "Bulk" badges on materials
+- Visual "Table 1", "Bulk", and "Stop #" badges on materials
 
 ### Placard Calculator
 - CFR 49 compliant calculations with proper Table 1/Table 2 and bulk/non-bulk logic
@@ -32,7 +33,8 @@ Fully functional prototype with client-side state management. The app is ready f
 - **Table 2 Non-Bulk Containers**: Placard required when aggregate weight exceeds 1,001 lbs
 - **DANGEROUS Placard Option**: Shows when drivers can use DANGEROUS placard as optional alternative (49 CFR 172.504(e))
   - Available for non-bulk, multiple Table 2 classes, no Table 1 materials
-  - Highlights when specific placards must still be displayed (≥2,205 lbs)
+  - **Critical: 2,205 lb threshold is PER LOADING FACILITY (stop number)** - specific placards required only if ≥2,205 lbs of one class at any single stop
+  - Correctly handles multi-stop scenarios per DOT regulations
 - Clear visual indication of required vs. not required placards
 - Color-coded placard displays matching DOT standards
 - Detailed explanations showing requirement type (Table 1, bulk, or weight threshold)
@@ -41,6 +43,7 @@ Fully functional prototype with client-side state management. The app is ready f
 - Comprehensive hazard class information
 - **Bulk vs Non-Bulk container explanations** with capacity thresholds
 - **DANGEROUS placard rules** with all conditions and examples (49 CFR 172.504(e))
+  - Includes "one loading facility" rule with multi-stop scenarios
 - Descriptions, examples, and placard colors for each class
 - Table 1 vs Table 2 placard requirement details
 - Accordion interface for easy navigation
@@ -76,6 +79,7 @@ See `shared/schema.ts` for the HazmatMaterial type:
 - Hazard Class
 - Packing Group
 - Container Type (bulk | non-bulk)
+- Stop Number (integer, defaults to 1) - tracks loading location
 - Weight (decimal)
 - Quantity (integer)
 
@@ -135,5 +139,11 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
   - Highlights specific placards that must still be displayed if any class ≥2,205 lbs
   - Amber-colored card with clear eligibility explanation
   - Reference guide includes all DANGEROUS rules with examples
+- **Implemented stop number tracking for multi-location pickups**:
+  - Stop number field in material input (Stop 1, Stop 2, etc.)
+  - Per-stop weight calculations for accurate DANGEROUS placard determination
+  - Critical fix: 2,205 lb threshold now correctly applies PER LOADING FACILITY (per stop), not total
+  - Visual stop number badges on materials
+  - Reference guide updated with multi-stop examples
 - Comprehensive end-to-end testing completed for all scenarios
 - All core features verified and working with correct DOT compliance
