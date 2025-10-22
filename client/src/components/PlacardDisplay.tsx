@@ -12,6 +12,7 @@ interface Material {
   weight: string;
   quantity: number;
   containerType: "bulk" | "non-bulk";
+  stopNumber: number;
 }
 
 interface PlacardDisplayProps {
@@ -46,7 +47,27 @@ const calculateDangerousPlacardEligibility = (
   // Check ALL Table 2 classes present (not just required ones)
   const allTable2Classes = requirements.filter((r) => !r.isTable1);
   const requiredTable2Classes = allTable2Classes.filter((r) => r.required);
-  const over2205lbs = allTable2Classes.filter((r) => r.weight >= 2205);
+  
+  // Calculate per-stop weights for each class
+  // DOT rule: 2,205 lbs threshold is PER LOADING FACILITY (stop number)
+  const stopClassWeights = new Map<string, number>();
+  materials.forEach((material) => {
+    const key = `${material.stopNumber}-${material.hazardClass}`;
+    const total = parseFloat(material.weight) * material.quantity;
+    const current = stopClassWeights.get(key) || 0;
+    stopClassWeights.set(key, current + total);
+  });
+  
+  // Find classes that exceed 2,205 lbs at ANY SINGLE STOP
+  const classesOver2205AtOneStop = new Set<string>();
+  stopClassWeights.forEach((weight, key) => {
+    if (weight >= 2205) {
+      const hazardClass = key.split('-')[1];
+      classesOver2205AtOneStop.add(hazardClass);
+    }
+  });
+  
+  const over2205lbs = allTable2Classes.filter((r) => classesOver2205AtOneStop.has(r.hazardClass));
 
   // Cannot use DANGEROUS if any Table 1 material
   if (hasTable1) {
@@ -86,12 +107,12 @@ const calculateDangerousPlacardEligibility = (
     };
   }
 
-  // If any class >= 2,205 lbs, must display that specific placard
+  // If any class >= 2,205 lbs AT ONE STOP, must display that specific placard
   if (over2205lbs.length > 0) {
     const specificClasses = over2205lbs.map((r) => r.label);
     return {
       canUse: true,
-      reason: `DANGEROUS placard may be used for remaining classes, but ${specificClasses.join(", ")} must display specific placard(s) (≥2,205 lbs)`,
+      reason: `DANGEROUS placard may be used for remaining classes, but ${specificClasses.join(", ")} must display specific placard(s) (≥2,205 lbs at one stop)`,
       specificPlacardRequired: specificClasses,
     };
   }
@@ -99,7 +120,7 @@ const calculateDangerousPlacardEligibility = (
   // Eligible to use DANGEROUS for all classes
   return {
     canUse: true,
-    reason: "DANGEROUS placard may be used instead of specific placards (non-bulk, multiple Table 2 classes, all <2,205 lbs)",
+    reason: "DANGEROUS placard may be used instead of specific placards (non-bulk, multiple Table 2 classes, all <2,205 lbs at any single stop)",
     specificPlacardRequired: [],
   };
 };

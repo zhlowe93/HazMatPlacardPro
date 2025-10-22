@@ -122,13 +122,14 @@ export default function ReferenceGuide() {
             </div>
             <div className="flex gap-2">
               <span className="font-semibold shrink-0">✓ Weight limit:</span>
-              <span>If any single class ≥2,205 lbs, that class must display its specific placard (DANGEROUS may be used for the remaining classes)</span>
+              <span>If any single class ≥2,205 lbs <strong>at one loading facility (stop)</strong>, that class must display its specific placard (DANGEROUS may be used for the remaining classes)</span>
             </div>
           </div>
           <div className="pt-2 space-y-1 text-xs bg-background/50 p-3 rounded">
             <p className="font-semibold">Examples:</p>
-            <p>• 1,200 lbs Class 3 + 800 lbs Class 8 (non-bulk) = <strong>May use DANGEROUS</strong> instead of both specific placards</p>
-            <p>• 2,500 lbs Class 8 + 600 lbs Class 3 (non-bulk) = <strong>Must display Class 8 placard</strong>, may use DANGEROUS for Class 3</p>
+            <p>• Stop 1: 1,200 lbs Class 3 + 800 lbs Class 8 (non-bulk) = <strong>May use DANGEROUS</strong> instead of both specific placards</p>
+            <p>• Stop 1: 2,500 lbs Class 8 (non-bulk) + Stop 2: 600 lbs Class 3 = <strong>Must display Class 8 placard</strong> (≥2,205 lbs at one stop), may use DANGEROUS for Class 3</p>
+            <p>• Stop 1: 1,500 lbs Class 8 + Stop 2: 1,000 lbs Class 8 + Stop 3: 600 lbs Class 3 = <strong>May use DANGEROUS</strong> (no single stop has ≥2,205 lbs of one class)</p>
             <p>• 1,500 lbs Class 3 in bulk tanker + 800 lbs Class 8 = <strong>Cannot use DANGEROUS</strong> (bulk present)</p>
           </div>
         </div>
