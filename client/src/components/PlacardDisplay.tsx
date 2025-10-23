@@ -161,8 +161,8 @@ const DiamondPlacard = ({ hazardClass, className = "", size = "md" }: DiamondPla
                 </div>
               </div>
               
-              {/* Lower corner: Class number (per CFR 172.519) */}
-              <div className={`self-end ${colors.text} text-4xl font-black leading-none pb-1 pr-1`}>
+              {/* Lower section: Class number (per CFR 172.519) */}
+              <div className={`w-full flex items-center justify-center ${colors.text} text-4xl font-black leading-none pb-1`}>
                 {hazardClass}
               </div>
             </div>
