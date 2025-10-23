@@ -1,6 +1,16 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { 
+  AlertCircle, 
+  CheckCircle2, 
+  Flame, 
+  Skull, 
+  Droplet,
+  Zap,
+  CircleDot,
+  Cylinder,
+  RadiationIcon
+} from "lucide-react";
 import { getPlacardColor, isTable1Material, getHazardClassInfo } from "@/lib/hazmat-data";
 
 // Diamond-shaped DOT placard component
@@ -9,6 +19,84 @@ interface DiamondPlacardProps {
   className?: string;
   size?: "sm" | "md" | "lg";
 }
+
+// Get the appropriate hazard symbol icon for each class
+const getHazardIcon = (hazardClass: string) => {
+  const classNum = parseFloat(hazardClass);
+  
+  // Class 1 - Explosives (bomb/explosion)
+  if (classNum >= 1 && classNum < 2) {
+    return <Zap className="w-8 h-8" strokeWidth={3} />;
+  }
+  
+  // Class 2.1 - Flammable Gas (flame)
+  if (hazardClass === "2.1") {
+    return <Flame className="w-8 h-8" strokeWidth={3} />;
+  }
+  
+  // Class 2.2 - Non-Flammable Gas (cylinder)
+  if (hazardClass === "2.2") {
+    return <Cylinder className="w-8 h-8" strokeWidth={3} />;
+  }
+  
+  // Class 2.3 - Poison Gas (skull)
+  if (hazardClass === "2.3") {
+    return <Skull className="w-8 h-8" strokeWidth={3} />;
+  }
+  
+  // Class 3 - Flammable Liquid (flame)
+  if (classNum === 3) {
+    return <Flame className="w-8 h-8" strokeWidth={3} />;
+  }
+  
+  // Class 4 - Flammable Solids (flame)
+  if (classNum >= 4 && classNum < 5) {
+    return <Flame className="w-8 h-8" strokeWidth={3} />;
+  }
+  
+  // Class 5 - Oxidizers (flame over circle)
+  if (classNum >= 5 && classNum < 6) {
+    return (
+      <div className="relative">
+        <CircleDot className="w-8 h-8" strokeWidth={3} />
+        <Flame className="w-4 h-4 absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1" strokeWidth={3} />
+      </div>
+    );
+  }
+  
+  // Class 6.1 - Poison/Toxic (skull)
+  if (classNum >= 6 && classNum < 7) {
+    return <Skull className="w-8 h-8" strokeWidth={3} />;
+  }
+  
+  // Class 7 - Radioactive (trefoil/radiation)
+  if (classNum === 7) {
+    return <RadiationIcon className="w-8 h-8" strokeWidth={3} />;
+  }
+  
+  // Class 8 - Corrosive (droplet on hand/surface)
+  if (classNum === 8) {
+    return (
+      <div className="relative">
+        <Droplet className="w-8 h-8" strokeWidth={3} />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-1 bg-current" />
+      </div>
+    );
+  }
+  
+  // Class 9 - Miscellaneous (stripes)
+  if (classNum === 9) {
+    return (
+      <div className="flex gap-0.5">
+        {[...Array(7)].map((_, i) => (
+          <div key={i} className="w-0.5 h-8 bg-current" />
+        ))}
+      </div>
+    );
+  }
+  
+  return null;
+};
 
 const DiamondPlacard = ({ hazardClass, className = "", size = "md" }: DiamondPlacardProps) => {
   const classInfo = getHazardClassInfo(hazardClass);
@@ -59,10 +147,15 @@ const DiamondPlacard = ({ hazardClass, className = "", size = "md" }: DiamondPla
           <div className={`absolute inset-[8%] border-2 ${colors.innerBorder}`}>
             {/* Content area (rotated back to be readable) */}
             <div className="-rotate-45 flex flex-col items-center justify-between h-full w-full p-1">
-              {/* Upper half: Hazard symbol/name */}
-              <div className={`flex-1 flex items-center justify-center ${colors.text}`}>
+              {/* Upper half: Hazard symbol and name */}
+              <div className={`flex-1 flex flex-col items-center justify-center ${colors.text} gap-1`}>
+                {/* Hazard icon symbol */}
+                <div className="flex items-center justify-center">
+                  {getHazardIcon(hazardClass)}
+                </div>
+                {/* Hazard class name */}
                 <div className="text-center px-1">
-                  <div className="text-[10px] font-black leading-tight tracking-tight">
+                  <div className="text-[9px] font-black leading-tight tracking-tight">
                     {classInfo?.name.toUpperCase().replace("EXPLOSIVES", "EXPLOSIVE")}
                   </div>
                 </div>
