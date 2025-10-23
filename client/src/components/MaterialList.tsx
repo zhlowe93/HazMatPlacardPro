@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import { getPlacardColor, isTable1Material } from "@/lib/hazmat-data";
 
 interface Material {
@@ -19,6 +19,7 @@ interface Material {
 interface MaterialListProps {
   materials: Material[];
   onRemoveMaterial: (id: string) => void;
+  onEditMaterial: (material: Material) => void;
 }
 
 const getHazardClassColor = (hazardClass: string): string => {
@@ -31,7 +32,7 @@ const getHazardClassColor = (hazardClass: string): string => {
   return `${baseColor} text-white`;
 };
 
-export default function MaterialList({ materials, onRemoveMaterial }: MaterialListProps) {
+export default function MaterialList({ materials, onRemoveMaterial, onEditMaterial }: MaterialListProps) {
   if (materials.length === 0) {
     return (
       <Card className="p-8">
@@ -108,15 +109,24 @@ export default function MaterialList({ materials, onRemoveMaterial }: MaterialLi
                 </div>
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onRemoveMaterial(material.id)}
-                data-testid={`button-remove-${material.id}`}
-                className="shrink-0"
-              >
-                <Trash2 className="w-5 h-5" />
-              </Button>
+              <div className="flex gap-1 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEditMaterial(material)}
+                  data-testid={`button-edit-${material.id}`}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemoveMaterial(material.id)}
+                  data-testid={`button-remove-${material.id}`}
+                >
+                  <Trash2 className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </Card>
         ))}
