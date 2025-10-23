@@ -213,22 +213,43 @@ export const isTable1Material = (hazardClass: string): boolean => {
 
 export const getPlacardColor = (hazardClass: string): string => {
   const classNum = parseFloat(hazardClass);
+  // Class 1 - Explosives (orange)
   if (classNum === 1 || (classNum >= 1.1 && classNum <= 1.6)) return "bg-orange-500";
+  
+  // Class 2 - Gases
   if (classNum >= 2 && classNum < 3) {
-    if (hazardClass === "2.3") return "bg-white";
-    if (hazardClass === "2.1") return "bg-red-500";
-    return "bg-yellow-500";
+    if (hazardClass === "2.1") return "bg-red-600"; // Flammable gas (red)
+    if (hazardClass === "2.2") return "bg-green-600"; // Non-flammable gas (green)
+    if (hazardClass === "2.3") return "bg-white"; // Poison gas (white)
+    return "bg-green-600";
   }
-  if (classNum === 3) return "bg-red-500";
+  
+  // Class 3 - Flammable liquid (red)
+  if (classNum === 3) return "bg-red-600";
+  
+  // Class 4 - Flammable solids
   if (classNum >= 4 && classNum < 5) {
-    if (hazardClass === "4.3") return "bg-blue-500";
-    return "bg-blue-500";
+    if (hazardClass === "4.1") return "bg-red-600 bg-stripes-white"; // Red with white stripes
+    if (hazardClass === "4.2") return "bg-red-600"; // Spontaneously combustible (red)
+    if (hazardClass === "4.3") return "bg-blue-600"; // Dangerous when wet (blue)
+    return "bg-red-600";
   }
+  
+  // Class 5 - Oxidizers (yellow)
   if (classNum >= 5 && classNum < 6) return "bg-yellow-400";
+  
+  // Class 6 - Toxic/Poison (white)
   if (classNum >= 6 && classNum < 7) return "bg-white";
-  if (classNum === 7) return "bg-yellow-300";
+  
+  // Class 7 - Radioactive (yellow top/white bottom)
+  if (classNum === 7) return "bg-yellow-400";
+  
+  // Class 8 - Corrosive (white top/black bottom)
   if (classNum === 8) return "bg-white";
+  
+  // Class 9 - Miscellaneous (white with black stripes)
   if (classNum === 9) return "bg-white";
+  
   return "bg-gray-500";
 };
 

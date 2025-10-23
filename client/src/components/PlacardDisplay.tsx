@@ -14,40 +14,64 @@ const DiamondPlacard = ({ hazardClass, className = "", size = "md" }: DiamondPla
   const classInfo = getHazardClassInfo(hazardClass);
   const bgColor = getPlacardColor(hazardClass);
   
-  // Size variants
+  // Size variants matching DOT specs (250mm = ~10 inches minimum)
   const sizeClasses = {
-    sm: "w-24 h-24",
-    md: "w-32 h-32",
-    lg: "w-40 h-40"
+    sm: "w-28 h-28",
+    md: "w-40 h-40",
+    lg: "w-48 h-48"
   };
   
-  // Determine text color based on background
-  const getTextColor = (hazClass: string) => {
-    // Classes with white background need dark text
-    if (["2.2", "2.3", "6.1", "8", "9"].includes(hazClass)) {
-      return "text-black";
+  // Determine text and border colors based on hazard class
+  const getColors = (hazClass: string) => {
+    // Class 8 (Corrosive) has special top/bottom color scheme
+    if (hazClass === "8") {
+      return {
+        text: "text-black",
+        border: "border-black",
+        innerBorder: "border-black"
+      };
     }
-    // Classes with dark background need light text
-    return "text-white dark:text-white";
+    // Classes with white/light backgrounds need dark text
+    if (["2.2", "2.3", "6.1", "9"].includes(hazClass)) {
+      return {
+        text: "text-black",
+        border: "border-black",
+        innerBorder: "border-black"
+      };
+    }
+    // Classes with dark backgrounds (red, blue, orange) need white text
+    return {
+      text: "text-white dark:text-white",
+      border: "border-black",
+      innerBorder: "border-white"
+    };
   };
   
-  const textColor = getTextColor(hazardClass);
+  const colors = getColors(hazardClass);
   
   return (
     <div className={`${sizeClasses[size]} ${className}`}>
-      {/* Outer diamond (rotated square) */}
+      {/* Outer diamond container */}
       <div className="w-full h-full relative">
-        <div className={`absolute inset-0 rotate-45 ${bgColor} border-4 border-black flex items-center justify-center`}>
-          {/* Inner content (rotated back to be readable) */}
-          <div className="-rotate-45 flex flex-col items-center justify-center w-full h-full p-2">
-            {/* Hazard class name at top */}
-            <div className={`text-xs font-bold ${textColor} text-center leading-tight mb-1`}>
-              {classInfo?.name.toUpperCase() || `CLASS ${hazardClass}`}
-            </div>
-            
-            {/* Class number at bottom (larger) */}
-            <div className={`text-3xl font-black ${textColor} mt-auto`}>
-              {hazardClass}
+        {/* Rotated square creating diamond shape */}
+        <div className={`absolute inset-0 rotate-45 ${bgColor} border-[5px] ${colors.border}`}>
+          {/* Inner border (12.5mm from edge per CFR spec) */}
+          <div className={`absolute inset-[8%] border-2 ${colors.innerBorder}`}>
+            {/* Content area (rotated back to be readable) */}
+            <div className="-rotate-45 flex flex-col items-center justify-between h-full w-full p-1">
+              {/* Upper half: Hazard symbol/name */}
+              <div className={`flex-1 flex items-center justify-center ${colors.text}`}>
+                <div className="text-center px-1">
+                  <div className="text-[10px] font-black leading-tight tracking-tight">
+                    {classInfo?.name.toUpperCase().replace("EXPLOSIVES", "EXPLOSIVE")}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Lower corner: Class number (per CFR 172.519) */}
+              <div className={`self-end ${colors.text} text-4xl font-black leading-none pb-1 pr-1`}>
+                {hazardClass}
+              </div>
             </div>
           </div>
         </div>
@@ -261,14 +285,26 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              {/* DANGEROUS placard as diamond */}
+              {/* DANGEROUS placard as diamond - CFR 172.521 spec */}
               <div className="flex justify-center">
-                <div className="w-32 h-32">
+                <div className="w-40 h-40">
                   <div className="w-full h-full relative">
-                    <div className="absolute inset-0 rotate-45 bg-amber-400 border-4 border-black flex items-center justify-center">
-                      <div className="-rotate-45 flex items-center justify-center w-full h-full">
-                        <div className="text-lg font-black text-black text-center leading-tight">
-                          DANGEROUS
+                    {/* Outer border */}
+                    <div className="absolute inset-0 rotate-45 border-[5px] border-black">
+                      {/* Red/white striped background per CFR spec */}
+                      <div className="absolute inset-0 bg-white">
+                        {/* Top triangle (red) */}
+                        <div className="absolute inset-0 bg-red-500" style={{ clipPath: 'polygon(50% 0%, 0% 50%, 100% 50%)' }} />
+                        {/* Bottom triangle (red) */}
+                        <div className="absolute inset-0 bg-red-500" style={{ clipPath: 'polygon(0% 50%, 100% 50%, 50% 100%)' }} />
+                      </div>
+                      {/* Inner border */}
+                      <div className="absolute inset-[8%] border-2 border-black">
+                        {/* Content */}
+                        <div className="-rotate-45 flex items-center justify-center h-full w-full">
+                          <div className="text-sm font-black text-black text-center leading-tight">
+                            DANGEROUS
+                          </div>
                         </div>
                       </div>
                     </div>
