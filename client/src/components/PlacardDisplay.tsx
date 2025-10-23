@@ -3,6 +3,59 @@ import { Badge } from "@/components/ui/badge";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { getPlacardColor, isTable1Material, getHazardClassInfo } from "@/lib/hazmat-data";
 
+// Diamond-shaped DOT placard component
+interface DiamondPlacardProps {
+  hazardClass: string;
+  className?: string;
+  size?: "sm" | "md" | "lg";
+}
+
+const DiamondPlacard = ({ hazardClass, className = "", size = "md" }: DiamondPlacardProps) => {
+  const classInfo = getHazardClassInfo(hazardClass);
+  const bgColor = getPlacardColor(hazardClass);
+  
+  // Size variants
+  const sizeClasses = {
+    sm: "w-24 h-24",
+    md: "w-32 h-32",
+    lg: "w-40 h-40"
+  };
+  
+  // Determine text color based on background
+  const getTextColor = (hazClass: string) => {
+    // Classes with white background need dark text
+    if (["2.2", "2.3", "6.1", "8", "9"].includes(hazClass)) {
+      return "text-black";
+    }
+    // Classes with dark background need light text
+    return "text-white dark:text-white";
+  };
+  
+  const textColor = getTextColor(hazardClass);
+  
+  return (
+    <div className={`${sizeClasses[size]} ${className}`}>
+      {/* Outer diamond (rotated square) */}
+      <div className="w-full h-full relative">
+        <div className={`absolute inset-0 rotate-45 ${bgColor} border-4 border-black flex items-center justify-center`}>
+          {/* Inner content (rotated back to be readable) */}
+          <div className="-rotate-45 flex flex-col items-center justify-center w-full h-full p-2">
+            {/* Hazard class name at top */}
+            <div className={`text-xs font-bold ${textColor} text-center leading-tight mb-1`}>
+              {classInfo?.name.toUpperCase() || `CLASS ${hazardClass}`}
+            </div>
+            
+            {/* Class number at bottom (larger) */}
+            <div className={`text-3xl font-black ${textColor} mt-auto`}>
+              {hazardClass}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface Material {
   id: string;
   unNumber: string;
@@ -208,10 +261,17 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <div className="bg-amber-400 border-4 border-black aspect-square rounded-md flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-black">
-                    DANGEROUS
+              {/* DANGEROUS placard as diamond */}
+              <div className="flex justify-center">
+                <div className="w-32 h-32">
+                  <div className="w-full h-full relative">
+                    <div className="absolute inset-0 rotate-45 bg-amber-400 border-4 border-black flex items-center justify-center">
+                      <div className="-rotate-45 flex items-center justify-center w-full h-full">
+                        <div className="text-lg font-black text-black text-center leading-tight">
+                          DANGEROUS
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -254,21 +314,15 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {requiredPlacards.map((req) => (
               <div
                 key={req.hazardClass}
-                className="space-y-2"
+                className="space-y-3"
                 data-testid={`placard-required-${req.hazardClass}`}
               >
-                <div
-                  className={`${req.color} aspect-square rounded-md flex items-center justify-center border-2 border-black`}
-                >
-                  <div className="text-center rotate-45">
-                    <div className="text-4xl font-bold text-black -rotate-45">
-                      {req.hazardClass}
-                    </div>
-                  </div>
+                <div className="flex justify-center">
+                  <DiamondPlacard hazardClass={req.hazardClass} size="md" />
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-1 flex-wrap">
