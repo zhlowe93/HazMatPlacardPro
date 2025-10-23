@@ -118,7 +118,7 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
             </SelectTrigger>
             <SelectContent>
               {hazardClasses.map((hc) => (
-                <SelectItem key={hc.value} value={hc.value}>
+                <SelectItem key={hc.value} value={hc.value} data-testid={`option-hazard-class-${hc.value}`}>
                   {hc.label}
                 </SelectItem>
               ))}
@@ -140,7 +140,7 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
             </SelectTrigger>
             <SelectContent>
               {packingGroups.map((pg) => (
-                <SelectItem key={pg.value} value={pg.value}>
+                <SelectItem key={pg.value} value={pg.value} data-testid={`option-packing-group-${pg.value}`}>
                   {pg.label}
                 </SelectItem>
               ))}
@@ -162,7 +162,7 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
             </SelectTrigger>
             <SelectContent>
               {containerTypes.map((ct) => (
-                <SelectItem key={ct.value} value={ct.value}>
+                <SelectItem key={ct.value} value={ct.value} data-testid={`option-container-type-${ct.value}`}>
                   {ct.label}
                 </SelectItem>
               ))}

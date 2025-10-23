@@ -447,10 +447,10 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
             {requiredPlacards.map((req) => (
               <div
                 key={req.hazardClass}
-                className="space-y-4"
+                className="space-y-4 overflow-hidden"
                 data-testid={`placard-required-${req.hazardClass}`}
               >
-                <div className="flex justify-center bg-background p-2 rounded-md">
+                <div className="flex justify-center bg-background p-2 rounded-md overflow-hidden">
                   <DiamondPlacard hazardClass={req.hazardClass} size="md" />
                 </div>
                 <div className="text-center">
