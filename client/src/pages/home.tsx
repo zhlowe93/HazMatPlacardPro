@@ -21,6 +21,7 @@ interface Material {
 
 export default function Home() {
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
 
   const handleAddMaterial = (material: Omit<Material, "id">) => {
     const newMaterial: Material = {
@@ -30,8 +31,27 @@ export default function Home() {
     setMaterials((prev) => [...prev, newMaterial]);
   };
 
+  const handleEditMaterial = (material: Material) => {
+    setEditingMaterial(material);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleUpdateMaterial = (updatedMaterial: Material) => {
+    setMaterials((prev) =>
+      prev.map((m) => (m.id === updatedMaterial.id ? updatedMaterial : m))
+    );
+    setEditingMaterial(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMaterial(null);
+  };
+
   const handleRemoveMaterial = (id: string) => {
     setMaterials((prev) => prev.filter((m) => m.id !== id));
+    if (editingMaterial?.id === id) {
+      setEditingMaterial(null);
+    }
   };
 
   return (
@@ -68,7 +88,12 @@ export default function Home() {
               <p className="text-sm text-muted-foreground mb-4">
                 Enter the details of each hazardous material you're transporting
               </p>
-              <MaterialInput onAddMaterial={handleAddMaterial} />
+              <MaterialInput 
+                onAddMaterial={handleAddMaterial}
+                editingMaterial={editingMaterial}
+                onUpdateMaterial={handleUpdateMaterial}
+                onCancelEdit={handleCancelEdit}
+              />
             </div>
 
             <div>
@@ -76,7 +101,11 @@ export default function Home() {
               <p className="text-sm text-muted-foreground mb-4">
                 Review and manage your hazmat materials
               </p>
-              <MaterialList materials={materials} onRemoveMaterial={handleRemoveMaterial} />
+              <MaterialList 
+                materials={materials} 
+                onRemoveMaterial={handleRemoveMaterial}
+                onEditMaterial={handleEditMaterial}
+              />
             </div>
           </TabsContent>
 
