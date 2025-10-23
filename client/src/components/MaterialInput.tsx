@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,8 +10,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Plus, Save, X } from "lucide-react";
 import { getHazardClassOptions } from "@/lib/hazmat-data";
+
+interface Material {
+  id: string;
+  unNumber: string;
+  materialName: string;
+  hazardClass: string;
+  packingGroup: string;
+  weight: string;
+  quantity: number;
+  containerType: "bulk" | "non-bulk";
+  stopNumber: number;
+}
 
 interface MaterialInputProps {
   onAddMaterial: (material: {
@@ -24,6 +36,9 @@ interface MaterialInputProps {
     containerType: "bulk" | "non-bulk";
     stopNumber: number;
   }) => void;
+  editingMaterial?: Material | null;
+  onUpdateMaterial?: (material: Material) => void;
+  onCancelEdit?: () => void;
 }
 
 const hazardClasses = getHazardClassOptions();
@@ -40,7 +55,12 @@ const containerTypes = [
   { value: "bulk", label: "Bulk Container" },
 ];
 
-export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
+export default function MaterialInput({ 
+  onAddMaterial, 
+  editingMaterial, 
+  onUpdateMaterial,
+  onCancelEdit 
+}: MaterialInputProps) {
   const [unNumber, setUnNumber] = useState("");
   const [materialName, setMaterialName] = useState("");
   const [hazardClass, setHazardClass] = useState("");
@@ -50,27 +70,65 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
   const [weight, setWeight] = useState("");
   const [quantity, setQuantity] = useState(1);
 
+  useEffect(() => {
+    if (editingMaterial) {
+      setUnNumber(editingMaterial.unNumber);
+      setMaterialName(editingMaterial.materialName);
+      setHazardClass(editingMaterial.hazardClass);
+      setPackingGroup(editingMaterial.packingGroup);
+      setContainerType(editingMaterial.containerType);
+      setStopNumber(editingMaterial.stopNumber);
+      setWeight(editingMaterial.weight);
+      setQuantity(editingMaterial.quantity);
+    }
+  }, [editingMaterial]);
+
+  const resetForm = () => {
+    setUnNumber("");
+    setMaterialName("");
+    setHazardClass("");
+    setPackingGroup("");
+    setContainerType("non-bulk");
+    setStopNumber(1);
+    setWeight("");
+    setQuantity(1);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (unNumber && materialName && hazardClass && packingGroup && weight) {
-      onAddMaterial({
-        unNumber,
-        materialName,
-        hazardClass,
-        packingGroup,
-        containerType,
-        stopNumber,
-        weight,
-        quantity,
-      });
-      setUnNumber("");
-      setMaterialName("");
-      setHazardClass("");
-      setPackingGroup("");
-      setContainerType("non-bulk");
-      setWeight("");
-      setQuantity(1);
+      if (editingMaterial && onUpdateMaterial) {
+        onUpdateMaterial({
+          ...editingMaterial,
+          unNumber,
+          materialName,
+          hazardClass,
+          packingGroup,
+          containerType,
+          stopNumber,
+          weight,
+          quantity,
+        });
+      } else {
+        onAddMaterial({
+          unNumber,
+          materialName,
+          hazardClass,
+          packingGroup,
+          containerType,
+          stopNumber,
+          weight,
+          quantity,
+        });
+      }
+      resetForm();
+      if (onCancelEdit) onCancelEdit();
     }
+  };
+
+  const handleCancel = () => {
+    resetForm();
+    if (onCancelEdit) onCancelEdit();
   };
 
   return (
@@ -226,15 +284,39 @@ export default function MaterialInput({ onAddMaterial }: MaterialInputProps) {
           </div>
         </div>
 
-        <Button
-          type="submit"
-          data-testid="button-add-material"
-          className="w-full h-12 text-base"
-          size="default"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Add Material
-        </Button>
+        <div className="flex gap-3">
+          {editingMaterial && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              data-testid="button-cancel-edit"
+              className="flex-1 h-12 text-base"
+              size="default"
+            >
+              <X className="w-5 h-5 mr-2" />
+              Cancel
+            </Button>
+          )}
+          <Button
+            type="submit"
+            data-testid={editingMaterial ? "button-update-material" : "button-add-material"}
+            className={editingMaterial ? "flex-1 h-12 text-base" : "w-full h-12 text-base"}
+            size="default"
+          >
+            {editingMaterial ? (
+              <>
+                <Save className="w-5 h-5 mr-2" />
+                Update Material
+              </>
+            ) : (
+              <>
+                <Plus className="w-5 h-5 mr-2" />
+                Add Material
+              </>
+            )}
+          </Button>
+        </div>
       </form>
     </Card>
   );
