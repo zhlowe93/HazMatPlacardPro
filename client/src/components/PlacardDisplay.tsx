@@ -138,11 +138,11 @@ const DiamondPlacard = ({ hazardClass, className = "", size = "md" }: DiamondPla
   const colors = getColors(hazardClass);
   
   return (
-    <div className={`${sizeClasses[size]} ${className}`}>
-      {/* Outer diamond container */}
-      <div className="w-full h-full relative">
+    <div className={`${sizeClasses[size]} ${className} relative`}>
+      {/* Outer diamond container with background to block any text behind */}
+      <div className="w-full h-full relative bg-background overflow-hidden">
         {/* Rotated square creating diamond shape */}
-        <div className={`absolute inset-0 rotate-45 ${bgColor} border-[5px] ${colors.border}`}>
+        <div className={`absolute inset-0 rotate-45 ${bgColor} border-[5px] ${colors.border} z-10`}>
           {/* Inner border (12.5mm from edge per CFR spec) */}
           <div className={`absolute inset-[8%] border-2 ${colors.innerBorder}`}>
             {/* Content area (rotated back to be readable) */}
@@ -376,14 +376,14 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-3">
               {/* DANGEROUS placard as diamond - CFR 172.521 spec */}
-              <div className="flex justify-center">
-                <div className="w-40 h-40">
-                  <div className="w-full h-full relative">
+              <div className="flex justify-center bg-background p-2 rounded-md">
+                <div className="w-40 h-40 relative">
+                  <div className="w-full h-full relative bg-background overflow-hidden">
                     {/* Outer border */}
-                    <div className="absolute inset-0 rotate-45 border-[5px] border-black">
+                    <div className="absolute inset-0 rotate-45 border-[5px] border-black z-10">
                       {/* Red/white striped background per CFR spec */}
                       <div className="absolute inset-0 bg-white">
                         {/* Top triangle (red) */}
@@ -443,14 +443,14 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             {requiredPlacards.map((req) => (
               <div
                 key={req.hazardClass}
-                className="space-y-3"
+                className="space-y-4"
                 data-testid={`placard-required-${req.hazardClass}`}
               >
-                <div className="flex justify-center">
+                <div className="flex justify-center bg-background p-2 rounded-md">
                   <DiamondPlacard hazardClass={req.hazardClass} size="md" />
                 </div>
                 <div className="text-center">
