@@ -51,8 +51,8 @@ const packingGroups = [
 ];
 
 const containerTypes = [
-  { value: "non-bulk", label: "Non-Bulk Container" },
-  { value: "bulk", label: "Bulk Container" },
+  { value: "non-bulk", label: "85 Gallons or Below" },
+  { value: "bulk", label: "Above 85 Gallons" },
 ];
 
 export default function MaterialInput({ 
@@ -208,7 +208,7 @@ export default function MaterialInput({
 
         <div className="space-y-2">
           <Label htmlFor="container-type" className="text-base font-medium">
-            Container Type
+            Container Size
           </Label>
           <Select value={containerType} onValueChange={(value) => setContainerType(value as "bulk" | "non-bulk")}>
             <SelectTrigger
@@ -227,9 +227,7 @@ export default function MaterialInput({
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
-            <strong>Bulk container</strong> = container <em>capacity</em> exceeds: 119 gallons (liquid), 882 lbs (solid), or 1,000 lbs (gas).
-            <br />
-            <strong>Critical:</strong> Table 2 materials in bulk containers require placards <em>regardless of how much material is inside</em>.
+            Select your container size. Containers above 85 gallons are considered bulk and require placards for Table 2 materials <em>regardless of weight</em>.
           </p>
         </div>
 

@@ -70,33 +70,32 @@ export default function ReferenceGuide() {
       </Card>
 
       <Card className="p-6 bg-accent">
-        <h3 className="font-semibold mb-2 text-base">Bulk vs Non-Bulk Containers</h3>
+        <h3 className="font-semibold mb-2 text-base">Container Size Guidelines</h3>
         <div className="space-y-3 text-sm text-muted-foreground">
           <p className="font-medium">
-            <strong>Critical distinction:</strong> Bulk classification is based on <em>container capacity</em>, not material weight.
+            <strong>Simplified rule:</strong> Containers above 85 gallons are considered bulk.
           </p>
           <div className="space-y-2">
             <div className="flex gap-2">
-              <span className="font-semibold shrink-0">• Bulk Container:</span>
+              <span className="font-semibold shrink-0">• Above 85 Gallons (Bulk):</span>
               <span>
-                Container <em>capacity</em> exceeds 119 gallons (liquid), 882 lbs (solid), or 1,000 lbs (gas).
-                <strong> Table 2 materials in bulk containers require placards regardless of how much material is inside.</strong>
+                <strong>Table 2 materials require placards regardless of how much material is inside.</strong>
               </span>
             </div>
             <div className="flex gap-2">
-              <span className="font-semibold shrink-0">• Non-Bulk Container:</span>
+              <span className="font-semibold shrink-0">• 85 Gallons or Below (Non-Bulk):</span>
               <span>
-                Smaller capacity containers. Table 2 materials require placards only when aggregate <em>weight</em> exceeds 1,001 lbs per hazard class.
+                Table 2 materials require placards only when aggregate <em>weight</em> exceeds 1,001 lbs per hazard class.
               </span>
             </div>
           </div>
           <div className="pt-2 space-y-1 text-xs bg-background/50 p-3 rounded">
             <p className="font-semibold">Examples:</p>
-            <p>• 500-gallon tanker (bulk) with 200 lbs Class 3 = <strong>PLACARD REQUIRED</strong> (bulk container)</p>
-            <p>• 50-gallon drum (non-bulk) with 900 lbs Class 3 = <strong>NO PLACARD</strong> (below 1,001 lbs)</p>
+            <p>• 100-gallon container with 200 lbs Class 3 = <strong>PLACARD REQUIRED</strong> (above 85 gallons)</p>
+            <p>• 50-gallon drum with 900 lbs Class 3 = <strong>NO PLACARD</strong> (below 1,001 lbs)</p>
           </div>
           <p className="pt-2 text-xs">
-            <strong>Note:</strong> Table 1 materials always require placards regardless of container type or quantity.
+            <strong>Note:</strong> Table 1 materials always require placards regardless of container size or quantity.
           </p>
         </div>
       </Card>
@@ -109,8 +108,8 @@ export default function ReferenceGuide() {
           </p>
           <div className="space-y-2 pl-4">
             <div className="flex gap-2">
-              <span className="font-semibold shrink-0">✓ Non-bulk only:</span>
-              <span>All materials must be in non-bulk containers</span>
+              <span className="font-semibold shrink-0">✓ Container size:</span>
+              <span>All materials must be in containers 85 gallons or below</span>
             </div>
             <div className="flex gap-2">
               <span className="font-semibold shrink-0">✓ Multiple classes:</span>
