@@ -311,12 +311,37 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
 
   const requirements: PlacardRequirement[] = [];
   const table2Threshold = 1001;
+  
+  // CRITICAL: Per 49 CFR 172.504(c), the 1,001 lb threshold applies to the 
+  // AGGREGATE GROSS WEIGHT of ALL Table 2 materials combined (not per class).
+  // Calculate total weight of all Table 2 non-bulk materials on the vehicle.
+  // IMPORTANT: Iterate through individual MATERIALS (not class totals) to correctly
+  // handle cases where a class has both bulk and non-bulk packages.
+  let table2NonBulkAggregateWeight = 0;
+  materials.forEach((material) => {
+    const isTable1 = isTable1Material(material.hazardClass);
+    const isBulk = material.containerType === "bulk";
+    
+    // Add to aggregate only if Table 2 AND non-bulk
+    if (!isTable1 && !isBulk) {
+      const materialWeight = parseFloat(material.weight) * material.quantity;
+      table2NonBulkAggregateWeight += materialWeight;
+    }
+  });
+  
+  // If aggregate of ALL Table 2 non-bulk materials >= 1,001 lbs,
+  // then ALL Table 2 classes present require placards
+  const table2AggregateExceedsThreshold = table2NonBulkAggregateWeight >= table2Threshold;
 
   classTotals.forEach((weight, hazardClass) => {
     const isTable1 = isTable1Material(hazardClass);
     const hasBulk = classHasBulk.get(hazardClass) || false;
     
-    const required = isTable1 || (hasBulk && !isTable1) || weight >= table2Threshold;
+    // Placard required if:
+    // 1. Table 1 material (always required at any quantity), OR
+    // 2. Bulk container with Table 2 material (always required at any quantity), OR
+    // 3. Table 2 non-bulk AND aggregate of all Table 2 non-bulk >= 1,001 lbs
+    const required = isTable1 || (hasBulk && !isTable1) || (!isTable1 && !hasBulk && table2AggregateExceedsThreshold);
     
     let reason = "";
     if (isTable1) {
@@ -324,9 +349,9 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
     } else if (hasBulk) {
       reason = `Container above 85 gallons (Table 2) - placard required at any quantity (${weight.toFixed(0)} lbs)`;
     } else if (required) {
-      reason = `${weight.toFixed(0)} lbs exceeds ${table2Threshold} lbs threshold (Table 2, 85 gal or below)`;
+      reason = `Aggregate of all Table 2 materials (${table2NonBulkAggregateWeight.toFixed(0)} lbs) exceeds ${table2Threshold} lbs threshold (this class: ${weight.toFixed(0)} lbs)`;
     } else {
-      reason = `${weight.toFixed(0)} lbs below ${table2Threshold} lbs threshold (Table 2, 85 gal or below)`;
+      reason = `Aggregate of all Table 2 materials (${table2NonBulkAggregateWeight.toFixed(0)} lbs) below ${table2Threshold} lbs threshold (this class: ${weight.toFixed(0)} lbs)`;
     }
 
     requirements.push({

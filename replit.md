@@ -166,3 +166,19 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
   - Confirmed aggregate weights correctly sum across stops for 1,001 lb threshold
   - Confirmed 2,205 lb DANGEROUS placard rule applies per-stop (not aggregate)
   - Verified edge case: exactly 1,001 lbs triggers placard requirement
+
+## Recent Changes (November 9, 2025)
+- **CRITICAL FIX: Corrected 1,001 lb threshold calculation per CFR 49 172.504(c)**:
+  - **Previous (INCORRECT)**: Checked 1,001 lb threshold per individual hazard class
+  - **Now (CORRECT)**: Checks 1,001 lb threshold for aggregate of ALL Table 2 materials combined on vehicle
+  - Example: Class 3: 990 lbs + Class 2: 990 lbs + Class 6.1: 900 lbs + Class 8: 900 lbs = 3,780 lbs total → ALL placards now correctly required
+  - This was a critical regulatory compliance bug identified through user verification with DOT regulations
+  - Updated PlacardDisplay calculation logic with clear code comments citing CFR regulation
+  - Updated Reference Guide with correct aggregate weight explanation and examples
+  - Comprehensive end-to-end testing validates fix across all scenarios:
+    - ✅ Multiple Table 2 classes totaling >1,001 lbs (Gemini scenario)
+    - ✅ Edge case at exactly 1,001 lbs
+    - ✅ Below threshold at 1,000 lbs
+    - ✅ Mixed bulk and non-bulk containers
+    - ✅ Table 1 material precedence
+  - App now fully compliant with DOT placarding regulations

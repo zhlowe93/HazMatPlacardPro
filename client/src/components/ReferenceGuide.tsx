@@ -85,14 +85,15 @@ export default function ReferenceGuide() {
             <div className="flex gap-2">
               <span className="font-semibold shrink-0">• 85 Gallons or Below (Non-Bulk):</span>
               <span>
-                Table 2 materials require placards only when aggregate <em>weight</em> exceeds 1,001 lbs per hazard class.
+                Table 2 materials require placards when the <strong>combined total weight of ALL Table 2 materials</strong> on the vehicle exceeds 1,001 lbs (per 49 CFR 172.504(c)).
               </span>
             </div>
           </div>
           <div className="pt-2 space-y-1 text-xs bg-background/50 p-3 rounded">
             <p className="font-semibold">Examples:</p>
             <p>• 100-gallon container with 200 lbs Class 3 = <strong>PLACARD REQUIRED</strong> (above 85 gallons)</p>
-            <p>• 50-gallon drum with 900 lbs Class 3 = <strong>NO PLACARD</strong> (below 1,001 lbs)</p>
+            <p>• 50-gallon drum with 500 lbs Class 3 only = <strong>NO PLACARD</strong> (total below 1,001 lbs)</p>
+            <p>• Multiple drums: 500 lbs Class 3 + 600 lbs Class 8 = <strong>PLACARD REQUIRED</strong> (total 1,100 lbs exceeds threshold - both classes need placards)</p>
           </div>
           <p className="pt-2 text-xs">
             <strong>Note:</strong> Table 1 materials always require placards regardless of container size or quantity.
@@ -147,7 +148,7 @@ export default function ReferenceGuide() {
           </li>
           <li className="flex gap-2">
             <span className="font-semibold shrink-0">• Table 2 (Non-Bulk):</span>
-            <span>Placard required when aggregate weight of a single hazard class exceeds 1,001 lbs</span>
+            <span>Placard required when combined total weight of ALL Table 2 materials on vehicle exceeds 1,001 lbs (per 49 CFR 172.504(c))</span>
           </li>
           <li className="flex gap-2">
             <span className="font-semibold shrink-0">• Four sides:</span>

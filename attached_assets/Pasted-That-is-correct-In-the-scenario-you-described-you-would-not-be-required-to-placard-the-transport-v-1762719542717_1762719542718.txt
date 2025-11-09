@@ -1,0 +1,20 @@
+That is correct. In the scenario you described, you would not be required to placard the transport vehicle at all. 
+Here is why:
+The placarding exception for materials listed in Table 2 of the U.S. DOT regulations (which includes Class 3, Class 2 (most divisions), Class 6.1 (certain packing groups), and Class 8) states that placards are not required if the aggregate gross weight of all such materials in non-bulk packagings in the transport vehicle is less than 1,001 pounds (454 kg). 
+In your example:
+Class 3: 990 lbs
+Class 2: 990 lbs
+Class 6.1: 900 lbs
+Class 8: 900 lbs
+Total Aggregate Weight: 3,780 lbs 
+Even though the total weight of hazardous materials is over 1,001 lbs, the key is that no single class reached the 1,001 lbs threshold on its own. The exception is based on the aggregate weight of each material if you are relying on the 1,001 lb exception. 
+Wait, I need to check the rules on aggregate weight across different classes. My previous answer implied the aggregate weight across different classes was relevant for triggering placarding, which I now see is not correct. The 1001 lbs is the threshold for a single material to need a placard, but if multiple items are present, the rule is more complex.
+My previous response was slightly inaccurate. Let me verify the rule for multiple classes under the individual 1001 lb limit.
+The regulation (49 CFR 172.504(c)) states that placards are not required on a transport vehicle which contains less than 1,001 pounds aggregate gross weight of hazardous materials covered by Table 2. This implies the sum of all Table 2 materials. 
+I will re-evaluate based on the search results.
+Based on further review of the regulations and guidance, my previous response was incorrect. The aggregate gross weight of all Table 2 hazardous materials in non-bulk packaging within a transport vehicle is what triggers the placarding requirement when it reaches 1,001 lbs or more. 
+In your scenario, the total aggregate weight of the Table 2 materials is 3,780 lbs (990 lbs Class 3 + 990 lbs Class 2 + 900 lbs Class 6.1 + 900 lbs Class 8). Since this total exceeds 1,001 lbs, placarding is required. 
+You have two options for placarding the vehicle in this case:
+Display the specific placards for each hazard class present: Class 3 (FLAMMABLE), Class 2 (likely NON-FLAMMABLE GAS for 2.2), Class 6.1 (POISON, if Packing Group I or II, or another appropriate 6.1 placard), and Class 8 (CORROSIVE).
+Alternatively, you can use the single DANGEROUS placard. This option is permissible because no single material in your shipment exceeds 2,205 lbs at one loading facility. 
+Therefore, placarding is required because the total aggregate weight of all Table 2 hazardous materials in non-bulk packages is greater than 1,001 lbs. 
