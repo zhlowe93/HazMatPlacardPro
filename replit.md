@@ -18,24 +18,24 @@ Fully functional prototype with client-side state management. The app is ready f
 
 ### Material Management
 - Add/remove/edit hazardous materials with detailed classification
-- **Simplified container size selection**: "Above 85 Gallons" or "85 Gallons or Below" (replaces technical bulk/non-bulk terminology)
+- **Simplified container size selection**: "Above 95 Gallons" or "95 Gallons or Below" (replaces technical bulk/non-bulk terminology)
 - **Stop number tracking**: Record which pickup location (stop 1, stop 2, etc.) each material was loaded at
 - Track multiple materials in a single load throughout the day
 - Real-time weight and material count totals
 - Support for all DOT hazard classes including explosive divisions (1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 3, 4.1, 4.2, 4.3, 5.1, 5.2, 6.1, 7, 8, 9)
 - Packing group classifications (I, II, III, N/A)
-- Visual "Table 1", "Above 85 Gal", and "Stop #" badges on materials
+- Visual "Table 1", "Above 95 Gal", and "Stop #" badges on materials
 - Edit functionality with pencil icon to modify material weights/quantities
 
 ### Placard Calculator
 - CFR 49 compliant calculations with proper Table 1/Table 2 and container size logic
 - **Table 1 Materials**: Placard required at any quantity (Class 1.1, 1.2, 1.3, 2.3, 4.3)
-- **Containers Above 85 Gallons**: Placard required at ANY quantity for Table 2 materials
+- **Containers Above 95 Gallons**: Placard required at ANY quantity for Table 2 materials
   - **UN Numbers on Bulk Placards** (49 CFR 172.336): Each unique (class, UN) combination displays as separate placard with its UN number
   - Example: Two bulk Class 3 containers (UN 1203, UN 1230) → TWO Class 3 placards shown
-- **Containers 85 Gallons or Below**: Placard required when aggregate weight exceeds 1,001 lbs (no UN numbers displayed)
+- **Containers 95 Gallons or Below**: Placard required when aggregate weight exceeds 1,001 lbs (no UN numbers displayed)
 - **DANGEROUS Placard Option**: Shows when drivers can use DANGEROUS placard as optional alternative (49 CFR 172.504(e))
-  - Available for containers 85 gal or below, multiple Table 2 classes, no Table 1 materials
+  - Available for containers 95 gal or below, multiple Table 2 classes, no Table 1 materials
   - **Critical: 2,205 lb threshold is PER LOADING FACILITY (stop number)** - specific placards required only if ≥2,205 lbs of one class at any single stop
   - Correctly handles multi-stop scenarios per DOT regulations
 - Clear visual indication of required vs. not required placards
@@ -44,7 +44,7 @@ Fully functional prototype with client-side state management. The app is ready f
 
 ### Reference Guide
 - Comprehensive hazard class information
-- **Container Size Guidelines** with simplified 85 gallon threshold
+- **Container Size Guidelines** with simplified 95 gallon threshold
 - **DANGEROUS placard rules** with all conditions and examples (49 CFR 172.504(e))
   - Includes "one loading facility" rule with multi-stop scenarios
 - Descriptions, examples, and placard colors for each class
@@ -101,8 +101,8 @@ Designed specifically for use in truck cabs with:
 ### Regulatory Compliance
 - Based on CFR 49 DOT regulations
 - Properly implements Table 1 (any quantity) and Table 2 requirements
-- **Simplified container size approach**: 85 gallon threshold for practical driver use
-- **Container above 85 gallons**: Table 2 materials require placard at any quantity
+- **Simplified container size approach**: 95 gallon threshold for practical driver use
+- **Container above 95 gallons**: Table 2 materials require placard at any quantity
 - Covers all standard hazard classifications including explosive divisions
 - Accurate placard color coding per DOT standards
 - Includes disclaimer to verify with current DOT regulations
@@ -154,8 +154,8 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
 ## Recent Changes (November 3, 2025)
 - **Simplified container size selection for better usability**:
   - Changed from technical "Bulk" vs "Non-Bulk" terminology
-  - Now uses practical size-based selection: "Above 85 Gallons" vs "85 Gallons or Below"
-  - Aligns with industry standard where bulk containers typically start above 85 gallons
+  - Now uses practical size-based selection: "Above 95 Gallons" vs "95 Gallons or Below"
+  - Aligns with industry standard where bulk containers typically start above 95 gallons
   - Updated all user-facing text throughout the app (form labels, helper text, placard reasons, reference guide)
   - Backend still maintains "bulk" / "non-bulk" distinction for DOT compliance calculations
 - **Added edit material functionality**:
@@ -187,7 +187,7 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
 
 ## Recent Changes (November 24, 2025)
 - **Added UN identification numbers on bulk container placards (49 CFR 172.336)**:
-  - **Requirement**: When hazmat is in a bulk container (above 85 gallons), the UN identification number must be displayed on the placard
+  - **Requirement**: When hazmat is in a bulk container (above 95 gallons), the UN identification number must be displayed on the placard
   - **Critical Implementation**: Each unique (hazard class, UN number) combination creates a **separate placard entry**
   - **Example**: Two bulk containers (UN 1203 and UN 1230) both Class 3 → Shows TWO Class 3 placards, each with its respective UN number
   - **Visual Design**: Placards match actual DOT specifications with UN numbers displayed at top using proper contrast colors
