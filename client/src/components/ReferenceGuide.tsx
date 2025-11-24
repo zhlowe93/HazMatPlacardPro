@@ -73,17 +73,17 @@ export default function ReferenceGuide() {
         <h3 className="font-semibold mb-2 text-base">Container Size Guidelines</h3>
         <div className="space-y-3 text-sm text-muted-foreground">
           <p className="font-medium">
-            <strong>Simplified rule:</strong> Containers above 85 gallons are considered bulk.
+            <strong>Simplified rule:</strong> Containers above 95 gallons are considered bulk.
           </p>
           <div className="space-y-2">
             <div className="flex gap-2">
-              <span className="font-semibold shrink-0">• Above 85 Gallons (Bulk):</span>
+              <span className="font-semibold shrink-0">• Above 95 Gallons (Bulk):</span>
               <span>
                 <strong>Table 2 materials require placards regardless of how much material is inside.</strong>
               </span>
             </div>
             <div className="flex gap-2">
-              <span className="font-semibold shrink-0">• 85 Gallons or Below (Non-Bulk):</span>
+              <span className="font-semibold shrink-0">• 95 Gallons or Below (Non-Bulk):</span>
               <span>
                 Table 2 materials require placards when the <strong>combined total weight of ALL Table 2 materials</strong> on the vehicle exceeds 1,001 lbs (per 49 CFR 172.504(c)).
               </span>
@@ -91,7 +91,7 @@ export default function ReferenceGuide() {
           </div>
           <div className="pt-2 space-y-1 text-xs bg-background/50 p-3 rounded">
             <p className="font-semibold">Examples:</p>
-            <p>• 100-gallon container with 200 lbs Class 3 = <strong>PLACARD REQUIRED</strong> (above 85 gallons)</p>
+            <p>• 100-gallon container with 200 lbs Class 3 = <strong>PLACARD REQUIRED</strong> (above 95 gallons)</p>
             <p>• 50-gallon drum with 500 lbs Class 3 only = <strong>NO PLACARD</strong> (total below 1,001 lbs)</p>
             <p>• Multiple drums: 500 lbs Class 3 + 600 lbs Class 8 = <strong>PLACARD REQUIRED</strong> (total 1,100 lbs exceeds threshold - both classes need placards)</p>
           </div>
@@ -110,7 +110,7 @@ export default function ReferenceGuide() {
           <div className="space-y-2 pl-4">
             <div className="flex gap-2">
               <span className="font-semibold shrink-0">✓ Container size:</span>
-              <span>All materials must be in containers 85 gallons or below</span>
+              <span>All materials must be in containers 95 gallons or below</span>
             </div>
             <div className="flex gap-2">
               <span className="font-semibold shrink-0">✓ Multiple classes:</span>
