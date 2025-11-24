@@ -219,3 +219,10 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
     - ✅ Manual typing still works for all fields
     - ✅ Complete material entry flow verified end-to-end
   - Significantly improved mobile UX for drivers using the app in truck cabs
+- **Updated container size threshold from 85 to 95 gallons**:
+  - Changed all user-facing text from "85 gallons" to "95 gallons" throughout the app
+  - Updated labels: "Above 95 Gallons" and "95 Gallons or Below"
+  - Updated badges, placard reasons, and reference guide documentation
+  - Backend logic unchanged (still uses "bulk" / "non-bulk" internally)
+  - Fixed form validation bug: weight field now properly initializes to "0" and validates weight > 0
+  - Comprehensive testing confirms all container size labels display correctly
