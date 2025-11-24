@@ -52,8 +52,8 @@ const packingGroups = [
 ];
 
 const containerTypes = [
-  { value: "non-bulk", label: "85 Gallons or Below" },
-  { value: "bulk", label: "Above 85 Gallons" },
+  { value: "non-bulk", label: "95 Gallons or Below" },
+  { value: "bulk", label: "Above 95 Gallons" },
 ];
 
 export default function MaterialInput({ 
@@ -228,7 +228,7 @@ export default function MaterialInput({
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
-            Select your container size. Containers above 85 gallons are considered bulk and require placards for Table 2 materials <em>regardless of weight</em>.
+            Select your container size. Containers above 95 gallons are considered bulk and require placards for Table 2 materials <em>regardless of weight</em>.
           </p>
         </div>
 
