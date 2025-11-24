@@ -31,13 +31,15 @@ Fully functional prototype with client-side state management. The app is ready f
 - CFR 49 compliant calculations with proper Table 1/Table 2 and container size logic
 - **Table 1 Materials**: Placard required at any quantity (Class 1.1, 1.2, 1.3, 2.3, 4.3)
 - **Containers Above 85 Gallons**: Placard required at ANY quantity for Table 2 materials
-- **Containers 85 Gallons or Below**: Placard required when aggregate weight exceeds 1,001 lbs
+  - **UN Numbers on Bulk Placards** (49 CFR 172.336): Each unique (class, UN) combination displays as separate placard with its UN number
+  - Example: Two bulk Class 3 containers (UN 1203, UN 1230) → TWO Class 3 placards shown
+- **Containers 85 Gallons or Below**: Placard required when aggregate weight exceeds 1,001 lbs (no UN numbers displayed)
 - **DANGEROUS Placard Option**: Shows when drivers can use DANGEROUS placard as optional alternative (49 CFR 172.504(e))
   - Available for containers 85 gal or below, multiple Table 2 classes, no Table 1 materials
   - **Critical: 2,205 lb threshold is PER LOADING FACILITY (stop number)** - specific placards required only if ≥2,205 lbs of one class at any single stop
   - Correctly handles multi-stop scenarios per DOT regulations
 - Clear visual indication of required vs. not required placards
-- Color-coded placard displays matching DOT standards
+- Color-coded placard displays matching DOT standards with proper contrast for UN numbers
 - Detailed explanations showing requirement type (Table 1, container size, or weight threshold)
 
 ### Reference Guide
@@ -186,13 +188,15 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
 ## Recent Changes (November 24, 2025)
 - **Added UN identification numbers on bulk container placards (49 CFR 172.336)**:
   - **Requirement**: When hazmat is in a bulk container (above 85 gallons), the UN identification number must be displayed on the placard
-  - **Implementation**: UN numbers now display prominently in white text at the top of placards for bulk containers
-  - **Visual Design**: Placards closely match actual DOT specifications with UN numbers
+  - **Critical Implementation**: Each unique (hazard class, UN number) combination creates a **separate placard entry**
+  - **Example**: Two bulk containers (UN 1203 and UN 1230) both Class 3 → Shows TWO Class 3 placards, each with its respective UN number
+  - **Visual Design**: Placards match actual DOT specifications with UN numbers displayed at top using proper contrast colors
+  - **Color Visibility Fix**: UN numbers use adaptive contrast (black text on white/light backgrounds, white text on dark backgrounds)
   - **Badge Display**: UN number badge also shown below placard for additional clarity
-  - **Non-Bulk Materials**: Placards for non-bulk containers do NOT display UN numbers (even if aggregate weight triggers requirement)
-  - Example: Class 3 bulk container with UN 1203 shows "1203" in large white text on the placard
+  - **Non-Bulk Materials**: Placards for non-bulk containers do NOT display UN numbers (aggregated per class only)
+  - **Mixed Loads**: Class 3 bulk (UN 1203) + Class 3 non-bulk (UN 1863) → Shows TWO placards: one with UN 1203, one without
   - Comprehensive end-to-end testing validates correct UN number display:
-    - ✅ Single bulk container shows UN number on placard
-    - ✅ Multiple bulk containers each show their respective UN numbers
-    - ✅ Mixed bulk/non-bulk loads: only bulk placards show UN numbers
-  - Realistic placard representation helps drivers verify correct placarding on their vehicles
+    - ✅ Multiple bulk containers with different UN numbers show as separate placards
+    - ✅ White-background placards (Class 2.3, 6.1, 8, 9) display UN numbers in visible black text
+    - ✅ Mixed bulk/non-bulk loads: bulk placards show UN numbers, non-bulk aggregates do not
+  - Fully compliant with 49 CFR 172.336 requirement for distinct placard per bulk container

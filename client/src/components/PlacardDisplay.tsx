@@ -18,7 +18,7 @@ interface DiamondPlacardProps {
   hazardClass: string;
   className?: string;
   size?: "sm" | "md" | "lg";
-  unNumbers?: string[]; // UN identification numbers for bulk containers (49 CFR 172.336)
+  unNumber?: string; // UN identification number for this bulk container (49 CFR 172.336)
 }
 
 // Get the appropriate hazard symbol icon for each class
@@ -99,7 +99,7 @@ const getHazardIcon = (hazardClass: string) => {
   return null;
 };
 
-const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumbers }: DiamondPlacardProps) => {
+const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumber }: DiamondPlacardProps) => {
   const classInfo = getHazardClassInfo(hazardClass);
   const bgColor = getPlacardColor(hazardClass);
   
@@ -148,17 +148,17 @@ const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumbers }:
           <div className={`absolute inset-[8%] border-2 ${colors.innerBorder}`}>
             {/* Content area (rotated back to be readable) */}
             <div className="-rotate-45 flex flex-col items-center justify-between h-full w-full p-1">
-              {/* UN Numbers for bulk containers (49 CFR 172.336) - displayed at top */}
-              {unNumbers && unNumbers.length > 0 && (
+              {/* UN Number for bulk containers (49 CFR 172.336) - displayed at top */}
+              {unNumber && (
                 <div className="w-full flex items-center justify-center pt-1 pb-0.5">
                   <div className={`${colors.text} text-2xl font-black leading-none tracking-tight`}>
-                    {unNumbers.join(", ")}
+                    {unNumber}
                   </div>
                 </div>
               )}
               
               {/* Upper half: Hazard symbol and name */}
-              <div className={`flex-1 flex flex-col items-center justify-center ${colors.text} ${unNumbers && unNumbers.length > 0 ? 'gap-0.5' : 'gap-1'}`}>
+              <div className={`flex-1 flex flex-col items-center justify-center ${colors.text} ${unNumber ? 'gap-0.5' : 'gap-1'}`}>
                 {/* Hazard icon symbol */}
                 <div className="flex items-center justify-center">
                   {getHazardIcon(hazardClass)}
@@ -208,7 +208,8 @@ interface PlacardRequirement {
   isTable1: boolean;
   isBulk: boolean;
   weight: number;
-  unNumbers?: string[]; // UN numbers to display on placard for bulk containers
+  unNumber?: string; // UN number for this specific bulk container placard
+  key: string; // Unique key for React rendering (class or class-UN)
 }
 
 interface DangerousPlacardEligibility {
@@ -307,74 +308,90 @@ const calculateDangerousPlacardEligibility = (
 };
 
 const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement[] => {
-  const classTotals = new Map<string, number>();
-  const classHasBulk = new Map<string, boolean>();
-  const classUnNumbers = new Map<string, Set<string>>(); // Track ALL UN numbers for bulk containers
-  
-  materials.forEach((material) => {
-    const total = parseFloat(material.weight) * material.quantity;
-    const current = classTotals.get(material.hazardClass) || 0;
-    classTotals.set(material.hazardClass, current + total);
-    
-    // Per 49 CFR 172.336: UN number required on placard for bulk containers
-    if (material.containerType === "bulk") {
-      classHasBulk.set(material.hazardClass, true);
-      // Track ALL unique UN numbers for this class in bulk containers
-      if (!classUnNumbers.has(material.hazardClass)) {
-        classUnNumbers.set(material.hazardClass, new Set());
-      }
-      classUnNumbers.get(material.hazardClass)!.add(material.unNumber);
-    }
-  });
-
   const requirements: PlacardRequirement[] = [];
   const table2Threshold = 1001;
   
-  // CRITICAL: Per 49 CFR 172.504(c), the 1,001 lb threshold applies to the 
-  // AGGREGATE GROSS WEIGHT of ALL Table 2 materials combined (not per class).
-  // Calculate total weight of all Table 2 non-bulk materials on the vehicle.
-  // IMPORTANT: Iterate through individual MATERIALS (not class totals) to correctly
-  // handle cases where a class has both bulk and non-bulk packages.
+  // Track unique (class, UN) combinations for bulk containers
+  const bulkEntries = new Map<string, { class: string; un: string; weight: number; isTable1: boolean }>();
+  
+  // Track non-bulk totals per class
+  const nonBulkClassTotals = new Map<string, number>();
+  
+  // Calculate aggregate weight of ALL Table 2 non-bulk materials
   let table2NonBulkAggregateWeight = 0;
+  
   materials.forEach((material) => {
     const isTable1 = isTable1Material(material.hazardClass);
-    const isBulk = material.containerType === "bulk";
+    const materialWeight = parseFloat(material.weight) * material.quantity;
     
-    // Add to aggregate only if Table 2 AND non-bulk
-    if (!isTable1 && !isBulk) {
-      const materialWeight = parseFloat(material.weight) * material.quantity;
-      table2NonBulkAggregateWeight += materialWeight;
+    if (material.containerType === "bulk") {
+      // Per 49 CFR 172.336: Each bulk container needs its own placard entry with UN number
+      const key = `${material.hazardClass}-${material.unNumber}`;
+      const existing = bulkEntries.get(key);
+      
+      if (existing) {
+        existing.weight += materialWeight;
+      } else {
+        bulkEntries.set(key, {
+          class: material.hazardClass,
+          un: material.unNumber,
+          weight: materialWeight,
+          isTable1,
+        });
+      }
+    } else {
+      // Non-bulk: aggregate by class
+      const current = nonBulkClassTotals.get(material.hazardClass) || 0;
+      nonBulkClassTotals.set(material.hazardClass, current + materialWeight);
+      
+      // Add to Table 2 aggregate if applicable
+      if (!isTable1) {
+        table2NonBulkAggregateWeight += materialWeight;
+      }
     }
   });
   
-  // If aggregate of ALL Table 2 non-bulk materials >= 1,001 lbs,
-  // then ALL Table 2 classes present require placards
+  // Check if Table 2 non-bulk aggregate exceeds threshold
   const table2AggregateExceedsThreshold = table2NonBulkAggregateWeight >= table2Threshold;
-
-  classTotals.forEach((weight, hazardClass) => {
+  
+  // Create placard entries for each unique bulk (class, UN) combination
+  bulkEntries.forEach((entry, key) => {
+    const reason = entry.isTable1
+      ? `Table 1 material in bulk container - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`
+      : `Container above 85 gallons (Table 2) - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`;
+    
+    requirements.push({
+      hazardClass: entry.class,
+      label: `Class ${entry.class}`,
+      required: true, // Bulk containers always require placards
+      reason,
+      color: getPlacardColor(entry.class),
+      isTable1: entry.isTable1,
+      isBulk: true,
+      weight: entry.weight,
+      unNumber: entry.un, // Include UN number for bulk container placard
+      key: `bulk-${key}`,
+    });
+  });
+  
+  // Create placard entries for non-bulk classes
+  nonBulkClassTotals.forEach((weight, hazardClass) => {
     const isTable1 = isTable1Material(hazardClass);
-    const hasBulk = classHasBulk.get(hazardClass) || false;
-    const unNumbers = classUnNumbers.has(hazardClass) 
-      ? Array.from(classUnNumbers.get(hazardClass)!).sort() 
-      : undefined; // Get all UN numbers if bulk containers
     
     // Placard required if:
     // 1. Table 1 material (always required at any quantity), OR
-    // 2. Bulk container with Table 2 material (always required at any quantity), OR
-    // 3. Table 2 non-bulk AND aggregate of all Table 2 non-bulk >= 1,001 lbs
-    const required = isTable1 || (hasBulk && !isTable1) || (!isTable1 && !hasBulk && table2AggregateExceedsThreshold);
+    // 2. Table 2 non-bulk AND aggregate of all Table 2 non-bulk >= 1,001 lbs
+    const required = isTable1 || (!isTable1 && table2AggregateExceedsThreshold);
     
     let reason = "";
     if (isTable1) {
       reason = `Table 1 material - placard required at any quantity (${weight.toFixed(0)} lbs)`;
-    } else if (hasBulk) {
-      reason = `Container above 85 gallons (Table 2) - placard required at any quantity (${weight.toFixed(0)} lbs)`;
     } else if (required) {
       reason = `Aggregate of all Table 2 materials (${table2NonBulkAggregateWeight.toFixed(0)} lbs) exceeds ${table2Threshold} lbs threshold (this class: ${weight.toFixed(0)} lbs)`;
     } else {
       reason = `Aggregate of all Table 2 materials (${table2NonBulkAggregateWeight.toFixed(0)} lbs) below ${table2Threshold} lbs threshold (this class: ${weight.toFixed(0)} lbs)`;
     }
-
+    
     requirements.push({
       hazardClass,
       label: `Class ${hazardClass}`,
@@ -382,13 +399,29 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
       reason,
       color: getPlacardColor(hazardClass),
       isTable1,
-      isBulk: hasBulk,
+      isBulk: false,
       weight,
-      unNumbers, // Include all UN numbers for bulk containers
+      unNumber: undefined, // No UN number for non-bulk aggregate placards
+      key: `nonbulk-${hazardClass}`,
     });
   });
-
-  return requirements.sort((a, b) => parseFloat(a.hazardClass) - parseFloat(b.hazardClass));
+  
+  return requirements.sort((a, b) => {
+    // Sort by class number first
+    const classCompare = parseFloat(a.hazardClass) - parseFloat(b.hazardClass);
+    if (classCompare !== 0) return classCompare;
+    
+    // Within same class, bulk entries (with UN) come before non-bulk
+    if (a.isBulk && !b.isBulk) return -1;
+    if (!a.isBulk && b.isBulk) return 1;
+    
+    // Within bulk entries of same class, sort by UN number
+    if (a.unNumber && b.unNumber) {
+      return a.unNumber.localeCompare(b.unNumber);
+    }
+    
+    return 0;
+  });
 };
 
 export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
@@ -493,23 +526,23 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             {requiredPlacards.map((req) => (
               <div
-                key={req.hazardClass}
+                key={req.key}
                 className="space-y-4 overflow-hidden"
-                data-testid={`placard-required-${req.hazardClass}`}
+                data-testid={`placard-required-${req.hazardClass}${req.unNumber ? `-${req.unNumber}` : ''}`}
               >
                 <div className="flex justify-center bg-background p-2 rounded-md overflow-hidden">
                   <DiamondPlacard 
                     hazardClass={req.hazardClass} 
                     size="md"
-                    unNumbers={req.unNumbers} 
+                    unNumber={req.unNumber} 
                   />
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-1 flex-wrap">
                     <p className="font-semibold text-sm">{req.label}</p>
-                    {req.unNumbers && req.unNumbers.length > 0 && (
+                    {req.unNumber && (
                       <Badge variant="outline" className="text-xs font-mono">
-                        {req.unNumbers.join(", ")}
+                        {req.unNumber}
                       </Badge>
                     )}
                     {req.isTable1 && (
