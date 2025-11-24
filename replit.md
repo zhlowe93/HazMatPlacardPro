@@ -200,3 +200,22 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
     - ✅ White-background placards (Class 2.3, 6.1, 8, 9) display UN numbers in visible black text
     - ✅ Mixed bulk/non-bulk loads: bulk placards show UN numbers, non-bulk aggregates do not
   - Fully compliant with 49 CFR 172.336 requirement for distinct placard per bulk container
+- **Improved mobile-friendly number inputs**:
+  - **Problem**: Browser default number input up/down arrows were too small to use on mobile devices
+  - **Solution**: Created custom NumberStepper component with large touch-friendly plus/minus buttons
+  - **Implementation**: 48px x 48px buttons on either side of input field for easy tapping
+  - **Applied to**: Stop number, quantity, and weight inputs
+  - **Features**:
+    - Large minus button (left) and plus button (right) with 48px minimum touch targets
+    - Center input field still allows manual typing for precision
+    - Step values optimized: Stop/Quantity increment by 1, Weight increments by 10 lbs
+    - Proper disabled states when at min/max limits
+    - Integer mode for whole numbers (stop/quantity), decimal mode for weights
+  - **Responsive Design**: Weight and quantity fields stack vertically on mobile (grid-cols-1 sm:grid-cols-2)
+  - Comprehensive end-to-end testing validates all stepper functionality:
+    - ✅ Stop number increment/decrement buttons work correctly
+    - ✅ Quantity increment/decrement buttons work correctly
+    - ✅ Weight increment/decrement buttons work correctly (step by 10 lbs)
+    - ✅ Manual typing still works for all fields
+    - ✅ Complete material entry flow verified end-to-end
+  - Significantly improved mobile UX for drivers using the app in truck cabs
