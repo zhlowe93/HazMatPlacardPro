@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
+import { NumberStepper } from "@/components/ui/number-stepper";
 import { Plus, Save, X } from "lucide-react";
 import { getHazardClassOptions } from "@/lib/hazmat-data";
 
@@ -235,34 +236,33 @@ export default function MaterialInput({
           <Label htmlFor="stop-number" className="text-base font-medium">
             Stop Number (Loading Location)
           </Label>
-          <Input
+          <NumberStepper
             id="stop-number"
             data-testid="input-stop-number"
-            type="number"
-            min="1"
             value={stopNumber}
-            onChange={(e) => setStopNumber(parseInt(e.target.value) || 1)}
-            className="h-12 text-base font-mono"
+            onChange={setStopNumber}
+            min={1}
+            step={1}
+            integer={true}
           />
           <p className="text-xs text-muted-foreground">
             Track which pickup location this material came from. DOT requires specific placards for classes exceeding 2,205 lbs <strong>at a single loading facility</strong>.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="weight" className="text-base font-medium">
               Weight (lbs)
             </Label>
-            <Input
+            <NumberStepper
               id="weight"
               data-testid="input-weight"
-              type="number"
-              step="0.01"
+              value={weight || "0"}
+              onChange={(val) => setWeight(val.toString())}
+              min={0}
+              step={10}
               placeholder="1000"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              className="h-12 text-base font-mono"
             />
           </div>
 
@@ -270,14 +270,14 @@ export default function MaterialInput({
             <Label htmlFor="quantity" className="text-base font-medium">
               Quantity
             </Label>
-            <Input
+            <NumberStepper
               id="quantity"
               data-testid="input-quantity"
-              type="number"
-              min="1"
               value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-              className="h-12 text-base font-mono"
+              onChange={setQuantity}
+              min={1}
+              step={1}
+              integer={true}
             />
           </div>
         </div>
