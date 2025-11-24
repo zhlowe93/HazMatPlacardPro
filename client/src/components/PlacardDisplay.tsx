@@ -150,13 +150,15 @@ const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumber }: 
             <div className="-rotate-45 flex flex-col items-center justify-between h-full w-full p-1">
               {/* UN Number for bulk containers (49 CFR 172.336) - displayed at top in white */}
               {unNumber && (
-                <div className="w-full flex items-center justify-center text-white dark:text-white text-lg font-black leading-none pt-1">
-                  {unNumber}
+                <div className="w-full flex items-center justify-center pt-1 pb-0.5">
+                  <div className="text-white dark:text-white text-2xl font-black leading-none tracking-tight">
+                    {unNumber}
+                  </div>
                 </div>
               )}
               
               {/* Upper half: Hazard symbol and name */}
-              <div className={`flex-1 flex flex-col items-center justify-center ${colors.text} gap-1`}>
+              <div className={`flex-1 flex flex-col items-center justify-center ${colors.text} ${unNumber ? 'gap-0.5' : 'gap-1'}`}>
                 {/* Hazard icon symbol */}
                 <div className="flex items-center justify-center">
                   {getHazardIcon(hazardClass)}
