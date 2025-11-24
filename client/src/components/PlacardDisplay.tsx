@@ -264,7 +264,7 @@ const calculateDangerousPlacardEligibility = (
   if (hasBulk) {
     return {
       canUse: false,
-      reason: "Cannot use DANGEROUS placard when containers above 85 gallons are present (must use specific placards)",
+      reason: "Cannot use DANGEROUS placard when containers above 95 gallons are present (must use specific placards)",
       specificPlacardRequired: [],
     };
   }
@@ -302,7 +302,7 @@ const calculateDangerousPlacardEligibility = (
   // Eligible to use DANGEROUS for all classes
   return {
     canUse: true,
-    reason: "DANGEROUS placard may be used instead of specific placards (85 gal or below, multiple Table 2 classes, all <2,205 lbs at any single stop)",
+    reason: "DANGEROUS placard may be used instead of specific placards (95 gal or below, multiple Table 2 classes, all <2,205 lbs at any single stop)",
     specificPlacardRequired: [],
   };
 };
@@ -358,7 +358,7 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
   bulkEntries.forEach((entry, key) => {
     const reason = entry.isTable1
       ? `Table 1 material in bulk container - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`
-      : `Container above 85 gallons (Table 2) - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`;
+      : `Container above 95 gallons (Table 2) - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`;
     
     requirements.push({
       hazardClass: entry.class,
@@ -552,7 +552,7 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
                     )}
                     {req.isBulk && !req.isTable1 && (
                       <Badge variant="secondary" className="text-xs">
-                        Above 85 Gal
+                        Above 95 Gal
                       </Badge>
                     )}
                   </div>
