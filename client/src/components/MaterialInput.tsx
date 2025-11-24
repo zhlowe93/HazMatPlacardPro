@@ -68,7 +68,7 @@ export default function MaterialInput({
   const [packingGroup, setPackingGroup] = useState("");
   const [containerType, setContainerType] = useState<"bulk" | "non-bulk">("non-bulk");
   const [stopNumber, setStopNumber] = useState(1);
-  const [weight, setWeight] = useState("");
+  const [weight, setWeight] = useState("0");
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -91,13 +91,14 @@ export default function MaterialInput({
     setPackingGroup("");
     setContainerType("non-bulk");
     setStopNumber(1);
-    setWeight("");
+    setWeight("0");
     setQuantity(1);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (unNumber && materialName && hazardClass && packingGroup && weight) {
+    const weightNum = parseFloat(weight);
+    if (unNumber && materialName && hazardClass && packingGroup && !isNaN(weightNum) && weightNum > 0) {
       if (editingMaterial && onUpdateMaterial) {
         onUpdateMaterial({
           ...editingMaterial,
@@ -258,7 +259,7 @@ export default function MaterialInput({
             <NumberStepper
               id="weight"
               data-testid="input-weight"
-              value={weight || "0"}
+              value={weight}
               onChange={(val) => setWeight(val.toString())}
               min={0}
               step={10}
