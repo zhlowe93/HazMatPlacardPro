@@ -18,7 +18,7 @@ interface DiamondPlacardProps {
   hazardClass: string;
   className?: string;
   size?: "sm" | "md" | "lg";
-  unNumber?: string; // UN identification number for bulk containers (49 CFR 172.336)
+  unNumbers?: string[]; // UN identification numbers for bulk containers (49 CFR 172.336)
 }
 
 // Get the appropriate hazard symbol icon for each class
@@ -99,7 +99,7 @@ const getHazardIcon = (hazardClass: string) => {
   return null;
 };
 
-const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumber }: DiamondPlacardProps) => {
+const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumbers }: DiamondPlacardProps) => {
   const classInfo = getHazardClassInfo(hazardClass);
   const bgColor = getPlacardColor(hazardClass);
   
@@ -148,17 +148,17 @@ const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumber }: 
           <div className={`absolute inset-[8%] border-2 ${colors.innerBorder}`}>
             {/* Content area (rotated back to be readable) */}
             <div className="-rotate-45 flex flex-col items-center justify-between h-full w-full p-1">
-              {/* UN Number for bulk containers (49 CFR 172.336) - displayed at top in white */}
-              {unNumber && (
+              {/* UN Numbers for bulk containers (49 CFR 172.336) - displayed at top */}
+              {unNumbers && unNumbers.length > 0 && (
                 <div className="w-full flex items-center justify-center pt-1 pb-0.5">
-                  <div className="text-white dark:text-white text-2xl font-black leading-none tracking-tight">
-                    {unNumber}
+                  <div className={`${colors.text} text-2xl font-black leading-none tracking-tight`}>
+                    {unNumbers.join(", ")}
                   </div>
                 </div>
               )}
               
               {/* Upper half: Hazard symbol and name */}
-              <div className={`flex-1 flex flex-col items-center justify-center ${colors.text} ${unNumber ? 'gap-0.5' : 'gap-1'}`}>
+              <div className={`flex-1 flex flex-col items-center justify-center ${colors.text} ${unNumbers && unNumbers.length > 0 ? 'gap-0.5' : 'gap-1'}`}>
                 {/* Hazard icon symbol */}
                 <div className="flex items-center justify-center">
                   {getHazardIcon(hazardClass)}
@@ -208,7 +208,7 @@ interface PlacardRequirement {
   isTable1: boolean;
   isBulk: boolean;
   weight: number;
-  unNumber?: string; // UN number to display on placard for bulk containers
+  unNumbers?: string[]; // UN numbers to display on placard for bulk containers
 }
 
 interface DangerousPlacardEligibility {
@@ -309,7 +309,7 @@ const calculateDangerousPlacardEligibility = (
 const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement[] => {
   const classTotals = new Map<string, number>();
   const classHasBulk = new Map<string, boolean>();
-  const classUnNumber = new Map<string, string>(); // Track UN number for bulk containers
+  const classUnNumbers = new Map<string, Set<string>>(); // Track ALL UN numbers for bulk containers
   
   materials.forEach((material) => {
     const total = parseFloat(material.weight) * material.quantity;
@@ -319,10 +319,11 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
     // Per 49 CFR 172.336: UN number required on placard for bulk containers
     if (material.containerType === "bulk") {
       classHasBulk.set(material.hazardClass, true);
-      // Store the first UN number found for this class in a bulk container
-      if (!classUnNumber.has(material.hazardClass)) {
-        classUnNumber.set(material.hazardClass, material.unNumber);
+      // Track ALL unique UN numbers for this class in bulk containers
+      if (!classUnNumbers.has(material.hazardClass)) {
+        classUnNumbers.set(material.hazardClass, new Set());
       }
+      classUnNumbers.get(material.hazardClass)!.add(material.unNumber);
     }
   });
 
@@ -353,7 +354,9 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
   classTotals.forEach((weight, hazardClass) => {
     const isTable1 = isTable1Material(hazardClass);
     const hasBulk = classHasBulk.get(hazardClass) || false;
-    const unNumber = classUnNumber.get(hazardClass); // Get UN number if bulk container
+    const unNumbers = classUnNumbers.has(hazardClass) 
+      ? Array.from(classUnNumbers.get(hazardClass)!).sort() 
+      : undefined; // Get all UN numbers if bulk containers
     
     // Placard required if:
     // 1. Table 1 material (always required at any quantity), OR
@@ -381,7 +384,7 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
       isTable1,
       isBulk: hasBulk,
       weight,
-      unNumber, // Include UN number for bulk containers
+      unNumbers, // Include all UN numbers for bulk containers
     });
   });
 
@@ -498,15 +501,15 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
                   <DiamondPlacard 
                     hazardClass={req.hazardClass} 
                     size="md"
-                    unNumber={req.unNumber} 
+                    unNumbers={req.unNumbers} 
                   />
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-1 flex-wrap">
                     <p className="font-semibold text-sm">{req.label}</p>
-                    {req.unNumber && (
+                    {req.unNumbers && req.unNumbers.length > 0 && (
                       <Badge variant="outline" className="text-xs font-mono">
-                        {req.unNumber}
+                        {req.unNumbers.join(", ")}
                       </Badge>
                     )}
                     {req.isTable1 && (

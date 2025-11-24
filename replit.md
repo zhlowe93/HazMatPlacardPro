@@ -182,3 +182,17 @@ The workflow "Start application" runs `npm run dev` which starts both the Expres
     - ✅ Mixed bulk and non-bulk containers
     - ✅ Table 1 material precedence
   - App now fully compliant with DOT placarding regulations
+
+## Recent Changes (November 24, 2025)
+- **Added UN identification numbers on bulk container placards (49 CFR 172.336)**:
+  - **Requirement**: When hazmat is in a bulk container (above 85 gallons), the UN identification number must be displayed on the placard
+  - **Implementation**: UN numbers now display prominently in white text at the top of placards for bulk containers
+  - **Visual Design**: Placards closely match actual DOT specifications with UN numbers
+  - **Badge Display**: UN number badge also shown below placard for additional clarity
+  - **Non-Bulk Materials**: Placards for non-bulk containers do NOT display UN numbers (even if aggregate weight triggers requirement)
+  - Example: Class 3 bulk container with UN 1203 shows "1203" in large white text on the placard
+  - Comprehensive end-to-end testing validates correct UN number display:
+    - ✅ Single bulk container shows UN number on placard
+    - ✅ Multiple bulk containers each show their respective UN numbers
+    - ✅ Mixed bulk/non-bulk loads: only bulk placards show UN numbers
+  - Realistic placard representation helps drivers verify correct placarding on their vehicles
