@@ -20,6 +20,7 @@ interface DiamondPlacardProps {
   className?: string;
   size?: "sm" | "md" | "lg";
   unNumber?: string; // UN identification number for this bulk container (49 CFR 172.336)
+  isPih?: boolean; // Show "INHALATION HAZARD" for Class 6.1 PIH materials
 }
 
 // Get the appropriate hazard symbol icon for each class
@@ -100,7 +101,7 @@ const getHazardIcon = (hazardClass: string) => {
   return null;
 };
 
-const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumber }: DiamondPlacardProps) => {
+const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumber, isPih = false }: DiamondPlacardProps) => {
   const classInfo = getHazardClassInfo(hazardClass);
   const bgColor = getPlacardColor(hazardClass);
   
@@ -167,7 +168,9 @@ const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumber }: 
                 {/* Hazard class name */}
                 <div className="text-center px-1">
                   <div className="text-[9px] font-black leading-tight tracking-tight">
-                    {classInfo?.name.toUpperCase().replace("EXPLOSIVES", "EXPLOSIVE")}
+                    {isPih && hazardClass === "6.1" 
+                      ? "INHALATION\nHAZARD" 
+                      : classInfo?.name.toUpperCase().replace("EXPLOSIVES", "EXPLOSIVE")}
                   </div>
                 </div>
               </div>
@@ -212,6 +215,7 @@ interface PlacardRequirement {
   weight: number;
   unNumber?: string; // UN number for this specific bulk container placard
   key: string; // Unique key for React rendering (class or class-UN)
+  isPih?: boolean; // PIH designation for Class 6.1 materials
 }
 
 interface DangerousPlacardEligibility {
@@ -421,6 +425,7 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
       weight: entry.weight,
       unNumber: entry.un, // Include UN number for bulk container placard
       key: `bulk-${key}`,
+      isPih: entry.isPih,
     });
   });
   
@@ -458,6 +463,7 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
       weight,
       unNumber: undefined, // No UN number for non-bulk aggregate placards
       key: `nonbulk-${hazardClass}`,
+      isPih: hasPih,
     });
   });
   
@@ -611,7 +617,8 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
                   <DiamondPlacard 
                     hazardClass={req.hazardClass} 
                     size="md"
-                    unNumber={req.unNumber} 
+                    unNumber={req.unNumber}
+                    isPih={req.isPih}
                   />
                 </div>
                 <div className="text-center">
