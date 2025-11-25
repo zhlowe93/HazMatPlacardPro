@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -13,6 +13,7 @@ export const hazmatMaterials = pgTable("hazmat_materials", {
   quantity: integer("quantity").notNull().default(1),
   containerType: text("container_type").notNull().default("non-bulk"),
   stopNumber: integer("stop_number").notNull().default(1),
+  poisonInhalationHazard: boolean("poison_inhalation_hazard").notNull().default(false),
 });
 
 export const insertHazmatMaterialSchema = createInsertSchema(hazmatMaterials).omit({

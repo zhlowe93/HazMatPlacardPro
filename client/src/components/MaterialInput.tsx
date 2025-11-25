@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { NumberStepper } from "@/components/ui/number-stepper";
-import { Plus, Save, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Save, X, AlertTriangle } from "lucide-react";
 import { getHazardClassOptions } from "@/lib/hazmat-data";
 
 interface Material {
@@ -24,6 +25,7 @@ interface Material {
   quantity: number;
   containerType: "bulk" | "non-bulk";
   stopNumber: number;
+  poisonInhalationHazard: boolean;
 }
 
 interface MaterialInputProps {
@@ -36,6 +38,7 @@ interface MaterialInputProps {
     quantity: number;
     containerType: "bulk" | "non-bulk";
     stopNumber: number;
+    poisonInhalationHazard: boolean;
   }) => void;
   editingMaterial?: Material | null;
   onUpdateMaterial?: (material: Material) => void;
@@ -70,6 +73,17 @@ export default function MaterialInput({
   const [stopNumber, setStopNumber] = useState(1);
   const [weight, setWeight] = useState("0");
   const [quantity, setQuantity] = useState(1);
+  const [poisonInhalationHazard, setPoisonInhalationHazard] = useState(false);
+
+  // Show PIH option only for Class 6.1 with Packing Group I
+  const showPihOption = hazardClass === "6.1" && packingGroup === "I";
+
+  // Reset PIH when conditions no longer apply
+  useEffect(() => {
+    if (!showPihOption) {
+      setPoisonInhalationHazard(false);
+    }
+  }, [showPihOption]);
 
   useEffect(() => {
     if (editingMaterial) {
@@ -81,6 +95,7 @@ export default function MaterialInput({
       setStopNumber(editingMaterial.stopNumber);
       setWeight(editingMaterial.weight);
       setQuantity(editingMaterial.quantity);
+      setPoisonInhalationHazard(editingMaterial.poisonInhalationHazard || false);
     }
   }, [editingMaterial]);
 
@@ -93,6 +108,7 @@ export default function MaterialInput({
     setStopNumber(1);
     setWeight("0");
     setQuantity(1);
+    setPoisonInhalationHazard(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -110,6 +126,7 @@ export default function MaterialInput({
           stopNumber,
           weight,
           quantity,
+          poisonInhalationHazard,
         });
       } else {
         onAddMaterial({
@@ -121,6 +138,7 @@ export default function MaterialInput({
           stopNumber,
           weight,
           quantity,
+          poisonInhalationHazard,
         });
       }
       resetForm();
@@ -207,6 +225,36 @@ export default function MaterialInput({
             </SelectContent>
           </Select>
         </div>
+
+        {/* Poison Inhalation Hazard option - only shown for Class 6.1 PG I */}
+        {showPihOption && (
+          <div className="p-4 border-2 border-destructive/50 bg-destructive/10 rounded-lg space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="poison-inhalation-hazard"
+                    data-testid="checkbox-pih"
+                    checked={poisonInhalationHazard}
+                    onCheckedChange={(checked) => setPoisonInhalationHazard(checked === true)}
+                    className="h-6 w-6"
+                  />
+                  <Label 
+                    htmlFor="poison-inhalation-hazard" 
+                    className="text-base font-semibold text-destructive cursor-pointer"
+                  >
+                    Poison Inhalation Hazard (PIH)
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Check this if the material is a <strong>Zone A or Zone B</strong> inhalation hazard. 
+                  PIH materials are <strong>Table 1</strong> and require placarding at <strong>any quantity</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="container-type" className="text-base font-medium">

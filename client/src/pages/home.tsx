@@ -17,6 +17,7 @@ interface Material {
   quantity: number;
   containerType: "bulk" | "non-bulk";
   stopNumber: number;
+  poisonInhalationHazard: boolean;
 }
 
 export default function Home() {

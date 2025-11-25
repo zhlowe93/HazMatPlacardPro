@@ -194,6 +194,7 @@ interface Material {
   quantity: number;
   containerType: "bulk" | "non-bulk";
   stopNumber: number;
+  poisonInhalationHazard: boolean;
 }
 
 interface PlacardDisplayProps {
@@ -346,16 +347,19 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
   const table2Threshold = 1001;
   
   // Track unique (class, UN) combinations for bulk containers
-  const bulkEntries = new Map<string, { class: string; un: string; weight: number; isTable1: boolean }>();
+  const bulkEntries = new Map<string, { class: string; un: string; weight: number; isTable1: boolean; isPih: boolean }>();
   
-  // Track non-bulk totals per class
-  const nonBulkClassTotals = new Map<string, number>();
+  // Track non-bulk totals per class and whether any has PIH
+  const nonBulkClassTotals = new Map<string, { weight: number; hasPih: boolean }>();
   
   // Calculate aggregate weight of ALL Table 2 non-bulk materials
   let table2NonBulkAggregateWeight = 0;
   
   materials.forEach((material) => {
-    const isTable1 = isTable1Material(material.hazardClass);
+    // PIH materials are Table 1 regardless of their base hazard class
+    const isTable1ByClass = isTable1Material(material.hazardClass);
+    const isPih = material.poisonInhalationHazard === true;
+    const isTable1 = isTable1ByClass || isPih;
     const materialWeight = parseFloat(material.weight); // Weight is already total for all containers
     
     if (material.containerType === "bulk") {
@@ -365,20 +369,25 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
       
       if (existing) {
         existing.weight += materialWeight;
+        existing.isPih = existing.isPih || isPih;
       } else {
         bulkEntries.set(key, {
           class: material.hazardClass,
           un: material.unNumber,
           weight: materialWeight,
           isTable1,
+          isPih,
         });
       }
     } else {
       // Non-bulk: aggregate by class
-      const current = nonBulkClassTotals.get(material.hazardClass) || 0;
-      nonBulkClassTotals.set(material.hazardClass, current + materialWeight);
+      const current = nonBulkClassTotals.get(material.hazardClass) || { weight: 0, hasPih: false };
+      nonBulkClassTotals.set(material.hazardClass, { 
+        weight: current.weight + materialWeight, 
+        hasPih: current.hasPih || isPih 
+      });
       
-      // Add to Table 2 aggregate if applicable
+      // Add to Table 2 aggregate if applicable (PIH materials are Table 1, so excluded)
       if (!isTable1) {
         table2NonBulkAggregateWeight += materialWeight;
       }
@@ -409,16 +418,21 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
   });
   
   // Create placard entries for non-bulk classes
-  nonBulkClassTotals.forEach((weight, hazardClass) => {
-    const isTable1 = isTable1Material(hazardClass);
+  nonBulkClassTotals.forEach((data, hazardClass) => {
+    const { weight, hasPih } = data;
+    // Class is Table 1 if it's a Table 1 class OR if it has PIH designation
+    const isTable1ByClass = isTable1Material(hazardClass);
+    const isTable1 = isTable1ByClass || hasPih;
     
     // Placard required if:
-    // 1. Table 1 material (always required at any quantity), OR
+    // 1. Table 1 material or PIH (always required at any quantity), OR
     // 2. Table 2 non-bulk AND aggregate of all Table 2 non-bulk >= 1,001 lbs
     const required = isTable1 || (!isTable1 && table2AggregateExceedsThreshold);
     
     let reason = "";
-    if (isTable1) {
+    if (hasPih) {
+      reason = `Poison Inhalation Hazard (Table 1) - placard required at any quantity (${weight.toFixed(0)} lbs)`;
+    } else if (isTable1ByClass) {
       reason = `Table 1 material - placard required at any quantity (${weight.toFixed(0)} lbs)`;
     } else if (required) {
       reason = `Aggregate of all Table 2 materials (${table2NonBulkAggregateWeight.toFixed(0)} lbs) exceeds ${table2Threshold} lbs threshold (this class: ${weight.toFixed(0)} lbs)`;
@@ -428,7 +442,7 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
     
     requirements.push({
       hazardClass,
-      label: `Class ${hazardClass}`,
+      label: hasPih ? `Class ${hazardClass} (PIH)` : `Class ${hazardClass}`,
       required,
       reason,
       color: getPlacardColor(hazardClass),

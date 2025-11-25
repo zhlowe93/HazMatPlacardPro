@@ -14,6 +14,7 @@ interface Material {
   quantity: number;
   containerType: "bulk" | "non-bulk";
   stopNumber: number;
+  poisonInhalationHazard: boolean;
 }
 
 interface MaterialListProps {
@@ -85,7 +86,12 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
                   <Badge variant="outline" className="text-xs font-mono" data-testid={`badge-stop-${material.id}`}>
                     Stop {material.stopNumber}
                   </Badge>
-                  {isTable1Material(material.hazardClass) && (
+                  {material.poisonInhalationHazard && (
+                    <Badge variant="destructive" className="text-xs" data-testid={`badge-pih-${material.id}`}>
+                      PIH
+                    </Badge>
+                  )}
+                  {(isTable1Material(material.hazardClass) || material.poisonInhalationHazard) && (
                     <Badge variant="destructive" className="text-xs">
                       Table 1
                     </Badge>
