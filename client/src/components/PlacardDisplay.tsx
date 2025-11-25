@@ -370,6 +370,8 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
       if (existing) {
         existing.weight += materialWeight;
         existing.isPih = existing.isPih || isPih;
+        // Update isTable1 if this material has PIH
+        existing.isTable1 = existing.isTable1 || isPih;
       } else {
         bulkEntries.set(key, {
           class: material.hazardClass,
@@ -399,13 +401,18 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
   
   // Create placard entries for each unique bulk (class, UN) combination
   bulkEntries.forEach((entry, key) => {
-    const reason = entry.isTable1
-      ? `Table 1 material in bulk container - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`
-      : `Container above 95 gallons (Table 2) - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`;
+    let reason: string;
+    if (entry.isPih) {
+      reason = `Poison Inhalation Hazard (Table 1) in bulk container - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`;
+    } else if (entry.isTable1) {
+      reason = `Table 1 material in bulk container - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`;
+    } else {
+      reason = `Container above 95 gallons (Table 2) - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`;
+    }
     
     requirements.push({
       hazardClass: entry.class,
-      label: `Class ${entry.class}`,
+      label: entry.isPih ? `Class ${entry.class} (PIH)` : `Class ${entry.class}`,
       required: true, // Bulk containers always require placards
       reason,
       color: getPlacardColor(entry.class),
