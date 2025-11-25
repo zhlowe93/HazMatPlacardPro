@@ -254,7 +254,7 @@ export default function MaterialInput({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="weight" className="text-base font-medium">
-              Weight (lbs)
+              Total Weight (lbs)
             </Label>
             <NumberStepper
               id="weight"
@@ -265,11 +265,14 @@ export default function MaterialInput({
               step={10}
               placeholder="1000"
             />
+            <p className="text-xs text-muted-foreground">
+              Combined weight of all containers for this material.
+            </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="quantity" className="text-base font-medium">
-              Quantity
+              Quantity (containers)
             </Label>
             <NumberStepper
               id="quantity"
@@ -280,6 +283,9 @@ export default function MaterialInput({
               step={1}
               integer={true}
             />
+            <p className="text-xs text-muted-foreground">
+              Number of containers (for your reference).
+            </p>
           </div>
         </div>
 

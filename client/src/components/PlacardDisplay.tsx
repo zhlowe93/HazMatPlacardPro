@@ -235,7 +235,7 @@ const calculateDangerousPlacardEligibility = (
   const stopClassWeights = new Map<string, number>();
   materials.forEach((material) => {
     const key = `${material.stopNumber}-${material.hazardClass}`;
-    const total = parseFloat(material.weight) * material.quantity;
+    const total = parseFloat(material.weight); // Weight is already total for all containers
     const current = stopClassWeights.get(key) || 0;
     stopClassWeights.set(key, current + total);
   });
@@ -322,7 +322,7 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
   
   materials.forEach((material) => {
     const isTable1 = isTable1Material(material.hazardClass);
-    const materialWeight = parseFloat(material.weight) * material.quantity;
+    const materialWeight = parseFloat(material.weight); // Weight is already total for all containers
     
     if (material.containerType === "bulk") {
       // Per 49 CFR 172.336: Each bulk container needs its own placard entry with UN number

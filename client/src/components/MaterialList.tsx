@@ -44,7 +44,7 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
   }
 
   const totalWeight = materials.reduce(
-    (sum, m) => sum + parseFloat(m.weight) * m.quantity,
+    (sum, m) => sum + parseFloat(m.weight),
     0
   );
 
@@ -104,7 +104,7 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
                 <div className="flex gap-4 text-sm text-muted-foreground">
                   <span>PG: {material.packingGroup}</span>
                   <span className="font-mono">
-                    {material.quantity} × {parseFloat(material.weight).toFixed(2)} lbs
+                    {parseFloat(material.weight).toLocaleString()} lbs ({material.quantity} container{material.quantity !== 1 ? 's' : ''})
                   </span>
                 </div>
               </div>
