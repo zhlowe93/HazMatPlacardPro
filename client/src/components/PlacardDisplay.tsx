@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   AlertCircle, 
   CheckCircle2, 
+  XCircle,
   Flame, 
   Skull, 
   Droplet,
@@ -240,12 +241,21 @@ const calculateDangerousPlacardEligibility = (
     stopClassWeights.set(key, current + total);
   });
   
-  // Find classes that exceed 2,205 lbs at ANY SINGLE STOP
+  // Find classes that exceed 2,205 lbs at ANY SINGLE STOP and track which stop triggered it
   const classesOver2205AtOneStop = new Set<string>();
+  const classToStopExceeding = new Map<string, { stop: number; weight: number }>();
+  
   stopClassWeights.forEach((weight, key) => {
     if (weight >= 2205) {
-      const hazardClass = key.split('-')[1];
+      const [stopStr, hazardClass] = key.split('-');
+      const stopNum = parseInt(stopStr, 10);
       classesOver2205AtOneStop.add(hazardClass);
+      
+      // Track the stop with the highest weight for this class (most impactful)
+      const existing = classToStopExceeding.get(hazardClass);
+      if (!existing || weight > existing.weight) {
+        classToStopExceeding.set(hazardClass, { stop: stopNum, weight });
+      }
     }
   });
   
@@ -291,6 +301,14 @@ const calculateDangerousPlacardEligibility = (
 
   // If any class >= 2,205 lbs AT ONE STOP, must display that specific placard
   if (over2205lbs.length > 0) {
+    // Build detailed info about which stop caused each class to require specific placard
+    const specificClassDetails = over2205lbs.map((r) => {
+      const stopInfo = classToStopExceeding.get(r.hazardClass);
+      if (stopInfo) {
+        return `${r.label} (${stopInfo.weight.toLocaleString()} lbs at Stop ${stopInfo.stop})`;
+      }
+      return r.label;
+    });
     const specificClasses = over2205lbs.map((r) => r.label);
     
     // Calculate remaining classes that could use DANGEROUS
@@ -301,7 +319,7 @@ const calculateDangerousPlacardEligibility = (
     if (remainingClasses.length < 2) {
       return {
         canUse: false,
-        reason: `Cannot use DANGEROUS placard: ${specificClasses.join(", ")} must display specific placard(s) (≥2,205 lbs at one stop), and DANGEROUS requires 2+ remaining classes`,
+        reason: `Cannot use DANGEROUS placard: ${specificClassDetails.join(", ")} exceeds 2,205 lb threshold at one loading facility and must display specific placard. DANGEROUS requires 2+ remaining classes.`,
         specificPlacardRequired: [],
       };
     }
@@ -310,7 +328,7 @@ const calculateDangerousPlacardEligibility = (
     const remainingLabels = remainingClasses.map((r) => r.label);
     return {
       canUse: true,
-      reason: `DANGEROUS placard may be used for ${remainingLabels.join(", ")}, but ${specificClasses.join(", ")} must display specific placard(s) (≥2,205 lbs at one stop)`,
+      reason: `DANGEROUS placard may be used for ${remainingLabels.join(", ")}, but ${specificClassDetails.join(", ")} must display specific placard(s) (≥2,205 lbs at one loading facility)`,
       specificPlacardRequired: specificClasses,
     };
   }
@@ -458,6 +476,28 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
 
   return (
     <div className="space-y-6">
+      {/* Show why DANGEROUS is not available when threshold is exceeded */}
+      {!dangerousEligibility.canUse && 
+       dangerousEligibility.reason.includes("2,205") && (
+        <Card className="p-6 border-2 border-muted-foreground/30 bg-muted/30">
+          <div className="flex items-start gap-3">
+            <XCircle className="w-6 h-6 text-muted-foreground shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-lg font-semibold text-foreground" data-testid="text-dangerous-unavailable">
+                DANGEROUS Placard Not Available
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1" data-testid="text-dangerous-reason">
+                {dangerousEligibility.reason}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2 italic">
+                Per 49 CFR 172.504(e): When 2,205 lbs or more of one hazard class is picked up at a single loading facility, 
+                that class must display its specific placard. DANGEROUS can only be used with 2+ remaining eligible classes.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {dangerousEligibility.canUse && (
         <Card className="p-6 border-2 border-amber-500 bg-amber-50 dark:bg-amber-950">
           <div className="flex items-start gap-3 mb-4">
