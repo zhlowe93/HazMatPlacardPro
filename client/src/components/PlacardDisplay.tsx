@@ -292,9 +292,25 @@ const calculateDangerousPlacardEligibility = (
   // If any class >= 2,205 lbs AT ONE STOP, must display that specific placard
   if (over2205lbs.length > 0) {
     const specificClasses = over2205lbs.map((r) => r.label);
+    
+    // Calculate remaining classes that could use DANGEROUS
+    const remainingClasses = allTable2Classes.filter((r) => !classesOver2205AtOneStop.has(r.hazardClass));
+    
+    // DANGEROUS requires 2+ classes - if only 1 remains after excluding those requiring specific placards,
+    // DANGEROUS cannot be used at all (per 49 CFR 172.504(e) - requires "two or more categories")
+    if (remainingClasses.length < 2) {
+      return {
+        canUse: false,
+        reason: `Cannot use DANGEROUS placard: ${specificClasses.join(", ")} must display specific placard(s) (≥2,205 lbs at one stop), and DANGEROUS requires 2+ remaining classes`,
+        specificPlacardRequired: [],
+      };
+    }
+    
+    // 2+ classes remain - DANGEROUS can be used for those
+    const remainingLabels = remainingClasses.map((r) => r.label);
     return {
       canUse: true,
-      reason: `DANGEROUS placard may be used for remaining classes, but ${specificClasses.join(", ")} must display specific placard(s) (≥2,205 lbs at one stop)`,
+      reason: `DANGEROUS placard may be used for ${remainingLabels.join(", ")}, but ${specificClasses.join(", ")} must display specific placard(s) (≥2,205 lbs at one stop)`,
       specificPlacardRequired: specificClasses,
     };
   }
