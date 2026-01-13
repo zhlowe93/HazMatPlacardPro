@@ -69,16 +69,16 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
+      <main className="container mx-auto px-4 py-6 max-w-4xl pb-24">
         <Tabs defaultValue="materials" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 h-12">
-            <TabsTrigger value="materials" data-testid="tab-materials" className="text-base">
+          <TabsList className="grid w-full grid-cols-3 h-14 sticky top-16 z-40 bg-muted shadow-sm">
+            <TabsTrigger value="materials" data-testid="tab-materials" className="text-lg py-3">
               Materials
             </TabsTrigger>
-            <TabsTrigger value="placards" data-testid="tab-placards" className="text-base">
+            <TabsTrigger value="placards" data-testid="tab-placards" className="text-lg py-3">
               Placards
             </TabsTrigger>
-            <TabsTrigger value="reference" data-testid="tab-reference" className="text-base">
+            <TabsTrigger value="reference" data-testid="tab-reference" className="text-lg py-3">
               Reference
             </TabsTrigger>
           </TabsList>
