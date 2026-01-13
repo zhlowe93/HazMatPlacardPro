@@ -7,7 +7,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, AlertCircle, Info, ShieldAlert, ClipboardCheck } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, ShieldAlert, ClipboardCheck, Skull } from "lucide-react";
 import { hazardClasses } from "@/lib/hazmat-data";
 
 export default function ReferenceGuide() {
@@ -63,6 +63,92 @@ export default function ReferenceGuide() {
     }
   ];
 
+  const nightmareRoute = {
+    title: "THE NIGHTMARE ROUTE",
+    subtitle: "Ultimate Field Stress Test - 6 Materials, 3 Stops, Every Edge Case",
+    description: "This scenario simulates the worst-case multi-stop pickup a hazmat driver could face. It tests Table 1 rules, bulk containers, aggregate thresholds, per-facility limits, and DANGEROUS placard eligibility all at once.",
+    materials: [
+      {
+        step: 1,
+        stop: 1,
+        un: "UN1005",
+        name: "Anhydrous Ammonia",
+        class: "2.3",
+        packing: "N/A",
+        container: "Non-bulk (≤95 gal)",
+        weight: "50 lbs",
+        note: "TABLE 1 - Poison Gas. Placard required at ANY quantity."
+      },
+      {
+        step: 2,
+        stop: 1,
+        un: "UN1203",
+        name: "Gasoline",
+        class: "3",
+        packing: "II",
+        container: "Above 95 gal (Bulk)",
+        weight: "800 lbs",
+        note: "BULK container - requires placard + UN number display regardless of weight."
+      },
+      {
+        step: 3,
+        stop: 1,
+        un: "UN1789",
+        name: "Hydrochloric Acid",
+        class: "8",
+        packing: "II",
+        container: "Non-bulk (≤95 gal)",
+        weight: "2,300 lbs",
+        note: "Exceeds 2,205 lbs at Stop 1 - MUST use specific Class 8 placard (no DANGEROUS option for this class)."
+      },
+      {
+        step: 4,
+        stop: 2,
+        un: "UN1263",
+        name: "Paint",
+        class: "3",
+        packing: "III",
+        container: "Non-bulk (≤95 gal)",
+        weight: "400 lbs",
+        note: "Different UN than Stop 1's Class 3. Adds to aggregate. Stop 2 is under 2,205 lbs."
+      },
+      {
+        step: 5,
+        stop: 2,
+        un: "UN2794",
+        name: "Lead-Acid Batteries",
+        class: "8",
+        packing: "N/A",
+        container: "Non-bulk (≤95 gal)",
+        weight: "1,200 lbs",
+        note: "More Class 8. Total Class 8 now 3,500 lbs, but per-stop tracking matters for DANGEROUS."
+      },
+      {
+        step: 6,
+        stop: 3,
+        un: "UN1402",
+        name: "Calcium Carbide",
+        class: "4.3",
+        packing: "I",
+        container: "Non-bulk (≤95 gal)",
+        weight: "25 lbs",
+        note: "TABLE 1 - Dangerous When Wet. Second Table 1 material. Placard required at ANY quantity."
+      }
+    ],
+    expectedResults: {
+      requiredPlacards: [
+        { class: "2.3", reason: "Table 1 - Poison Gas (any quantity)" },
+        { class: "3", reason: "Bulk container + aggregate weight (1,200 lbs total Class 3)" },
+        { class: "8", reason: "Stop 1 has 2,300 lbs - exceeds 2,205 lb threshold" },
+        { class: "4.3", reason: "Table 1 - Dangerous When Wet (any quantity)" }
+      ],
+      dangerousOption: false,
+      dangerousReason: "DANGEROUS placard NOT available because: (1) Table 1 materials present (Class 2.3 and 4.3), (2) Bulk container present, (3) Class 8 exceeds 2,205 lbs at Stop 1.",
+      totalWeight: "4,775 lbs",
+      unNumbers: ["UN1203 must be displayed on Class 3 placard (bulk container rule)"]
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Card className="p-6 border-2 border-primary/20 bg-primary/5">
@@ -87,6 +173,89 @@ export default function ReferenceGuide() {
                   </ul>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* THE NIGHTMARE ROUTE - Ultimate Stress Test */}
+      <Card className="p-6 border-2 border-orange-500 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950" data-testid="nightmare-route-card">
+        <div className="flex items-start gap-3">
+          <Skull className="w-7 h-7 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
+          <div className="w-full">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <h2 className="text-xl font-black text-orange-700 dark:text-orange-300">{nightmareRoute.title}</h2>
+              <Badge className="bg-red-600 text-white text-[10px]">ADVANCED</Badge>
+            </div>
+            <p className="text-sm font-semibold text-orange-600 dark:text-orange-400 mb-2">{nightmareRoute.subtitle}</p>
+            <p className="text-sm text-muted-foreground mb-4">{nightmareRoute.description}</p>
+            
+            {/* Materials Table */}
+            <div className="bg-background rounded-lg border border-orange-200 dark:border-orange-800 overflow-hidden mb-4">
+              <div className="bg-orange-100 dark:bg-orange-900 px-3 py-2 border-b border-orange-200 dark:border-orange-800">
+                <p className="font-bold text-sm text-orange-800 dark:text-orange-200">Step-by-Step: Add These Materials</p>
+              </div>
+              <div className="divide-y divide-border">
+                {nightmareRoute.materials.map((mat) => (
+                  <div key={mat.step} className="p-3 text-sm" data-testid={`nightmare-step-${mat.step}`}>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <Badge variant="outline" className="font-mono text-xs">Step {mat.step}</Badge>
+                      <Badge className="bg-blue-500 text-white text-[10px]">Stop {mat.stop}</Badge>
+                      <span className="font-bold">{mat.un}</span>
+                      <span className="text-muted-foreground">- {mat.name}</span>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-muted-foreground mb-2">
+                      <div><span className="font-semibold">Class:</span> {mat.class}</div>
+                      <div><span className="font-semibold">PG:</span> {mat.packing}</div>
+                      <div><span className="font-semibold">Container:</span> {mat.container}</div>
+                      <div><span className="font-semibold">Weight:</span> {mat.weight}</div>
+                    </div>
+                    <div className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 px-2 py-1 rounded">
+                      {mat.note}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Expected Results */}
+            <div className="bg-background rounded-lg border border-green-300 dark:border-green-800 overflow-hidden">
+              <div className="bg-green-100 dark:bg-green-900 px-3 py-2 border-b border-green-200 dark:border-green-800 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <p className="font-bold text-sm text-green-800 dark:text-green-200">Expected Results (Verify in Placards Tab)</p>
+              </div>
+              <div className="p-3 space-y-3">
+                <div>
+                  <p className="font-semibold text-sm mb-2">Required Placards (4 Total):</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {nightmareRoute.expectedResults.requiredPlacards.map((p) => (
+                      <div key={p.class} className="flex items-start gap-2 text-xs bg-muted p-2 rounded">
+                        <Badge variant="destructive" className="text-[10px] shrink-0">Class {p.class}</Badge>
+                        <span className="text-muted-foreground">{p.reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="border-t pt-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <AlertCircle className="w-4 h-4 text-red-500" />
+                    <p className="font-semibold text-sm">DANGEROUS Placard: NOT Available</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground bg-red-50 dark:bg-red-950 p-2 rounded border border-red-200 dark:border-red-800">
+                    {nightmareRoute.expectedResults.dangerousReason}
+                  </p>
+                </div>
+
+                <div className="border-t pt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                  <div className="bg-muted p-2 rounded">
+                    <span className="font-semibold">Total Weight:</span> {nightmareRoute.expectedResults.totalWeight}
+                  </div>
+                  <div className="bg-muted p-2 rounded">
+                    <span className="font-semibold">UN Display:</span> {nightmareRoute.expectedResults.unNumbers[0]}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
