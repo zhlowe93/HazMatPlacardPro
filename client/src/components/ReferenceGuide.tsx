@@ -61,7 +61,7 @@ export default function ReferenceGuide() {
               </div>
               <div className="space-y-1">
                 <p className="font-bold">• UN Numbers on Bulk</p>
-                <p className="text-muted-foreground text-xs">Bulk containers (>95 gal) must display the UN identification number on the placard or an orange panel.</p>
+                <p className="text-muted-foreground text-xs">Bulk containers ({">"}95 gal) must display the UN identification number on the placard or an orange panel.</p>
               </div>
               <div className="space-y-1">
                 <p className="font-bold">• Old Placards Left Up</p>
