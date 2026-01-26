@@ -233,6 +233,97 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
+/* HIGH CONTRAST MODE - For bright sunlight visibility */
+.high-contrast {
+  --button-outline: rgba(255,255,255, .30);
+  --badge-outline: rgba(255,255,255, .20);
+
+  --opaque-button-border-intensity: 15;
+
+  /* Maximum contrast elevations */
+  --elevate-1: rgba(255,255,255, .10);
+  --elevate-2: rgba(255,255,255, .20);
+
+  /* Pure black background for maximum contrast */
+  --background: 0 0% 0%;
+
+  /* Bright white/yellow text for sunlight visibility */
+  --foreground: 50 100% 95%;
+
+  /* High contrast borders */
+  --border: 50 100% 50%;
+
+  /* Card styling - dark gray with yellow accents */
+  --card: 0 0% 8%;
+  --card-foreground: 50 100% 95%;
+  --card-border: 50 100% 40%;
+
+  /* Sidebar */
+  --sidebar: 0 0% 5%;
+  --sidebar-foreground: 50 100% 95%;
+  --sidebar-border: 50 100% 50%;
+  --sidebar-primary: 50 100% 55%;
+  --sidebar-primary-foreground: 0 0% 0%;
+  --sidebar-accent: 50 100% 25%;
+  --sidebar-accent-foreground: 50 100% 95%;
+  --sidebar-ring: 50 100% 55%;
+
+  /* Popover */
+  --popover: 0 0% 5%;
+  --popover-foreground: 50 100% 95%;
+  --popover-border: 50 100% 50%;
+
+  /* Primary - Bright yellow for maximum visibility */
+  --primary: 50 100% 55%;
+  --primary-foreground: 0 0% 0%;
+
+  /* Secondary */
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 50 100% 95%;
+
+  /* Muted */
+  --muted: 0 0% 12%;
+  --muted-foreground: 50 50% 70%;
+
+  /* Accent */
+  --accent: 50 100% 20%;
+  --accent-foreground: 50 100% 95%;
+
+  /* Destructive - Bright red */
+  --destructive: 0 100% 55%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Input borders - very visible yellow */
+  --input: 50 100% 50%;
+  --ring: 50 100% 60%;
+
+  /* Charts */
+  --chart-1: 50 100% 55%;
+  --chart-2: 120 100% 45%;
+  --chart-3: 30 100% 55%;
+  --chart-4: 280 100% 60%;
+  --chart-5: 0 100% 55%;
+
+  /* Shadows - minimal in high contrast */
+  --shadow-2xs: none;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-2xl: none;
+
+  /* Computed borders */
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --primary-border: hsl(var(--primary));
+  --secondary-border: hsl(var(--secondary));
+  --muted-border: hsl(var(--muted));
+  --accent-border: hsl(var(--accent));
+  --destructive-border: hsl(var(--destructive));
+}
+
 @layer base {
   * {
     @apply border-border;
