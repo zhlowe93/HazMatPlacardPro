@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Pencil } from "lucide-react";
+import { Trash2, Pencil, AlertTriangle, X } from "lucide-react";
 import { getPlacardColor, isTable1Material } from "@/lib/hazmat-data";
 
 interface Material {
@@ -21,6 +22,7 @@ interface MaterialListProps {
   materials: Material[];
   onRemoveMaterial: (id: string) => void;
   onEditMaterial: (material: Material) => void;
+  onClearAll?: () => void;
 }
 
 const getHazardClassColor = (hazardClass: string): string => {
@@ -33,7 +35,9 @@ const getHazardClassColor = (hazardClass: string): string => {
   return `${baseColor} text-white`;
 };
 
-export default function MaterialList({ materials, onRemoveMaterial, onEditMaterial }: MaterialListProps) {
+export default function MaterialList({ materials, onRemoveMaterial, onEditMaterial, onClearAll }: MaterialListProps) {
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
   if (materials.length === 0) {
     return (
       <Card className="p-8">
@@ -49,10 +53,17 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
     0
   );
 
+  const handleClearAll = () => {
+    if (onClearAll) {
+      onClearAll();
+    }
+    setShowClearConfirm(false);
+  };
+
   return (
     <div className="space-y-4">
       <Card className="p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Total Materials</p>
             <p className="text-2xl font-bold font-mono" data-testid="text-total-materials">
@@ -66,6 +77,54 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
             </p>
           </div>
         </div>
+
+        {onClearAll && (
+          <div className="mt-4 pt-4 border-t">
+            {!showClearConfirm ? (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setShowClearConfirm(true)}
+                className="w-full h-14 text-destructive border-destructive/30 hover:bg-destructive/10"
+                data-testid="button-clear-all"
+              >
+                <Trash2 className="w-5 h-5 mr-2" />
+                Clear All Materials
+              </Button>
+            ) : (
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 space-y-3" data-testid="confirm-clear-dialog">
+                <div className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span className="font-semibold">Clear all {materials.length} materials?</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  This will remove all materials from your current load. This action cannot be undone.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    onClick={handleClearAll}
+                    className="flex-1 h-14"
+                    data-testid="button-confirm-clear"
+                  >
+                    Yes, Clear All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setShowClearConfirm(false)}
+                    className="flex-1 h-14"
+                    data-testid="button-cancel-clear"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </Card>
 
       <div className="space-y-3">

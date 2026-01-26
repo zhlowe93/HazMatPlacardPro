@@ -56,6 +56,11 @@ export default function Home() {
     }
   };
 
+  const handleClearAll = () => {
+    setMaterials([]);
+    setEditingMaterial(null);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -107,6 +112,7 @@ export default function Home() {
                 materials={materials} 
                 onRemoveMaterial={handleRemoveMaterial}
                 onEditMaterial={handleEditMaterial}
+                onClearAll={handleClearAll}
               />
             </div>
           </TabsContent>
