@@ -42,6 +42,15 @@ The application is designed as a session-based tool, making a database unnecessa
 - **Layout**: Single-column mobile layout with responsive grid for tablets/desktop
 - **Dark Mode**: Automatic persistence with high-contrast support
 
+## Field-Testing Enhancements (January 2026)
+- **High-Contrast Mode**: Pure black background with bright yellow text for direct sunlight visibility (cycles: light -> dark -> high-contrast)
+- **Confirmation Feedback**: Toast notifications + haptic feedback (vibration) when materials are added/updated
+- **Quick Check Summary**: Load summary displayed at top of Placards tab before showing requirements
+- **Weight Validation**: Warning shown for unusually high weights (>10,000 lbs) to prevent data entry errors
+- **Clear Confirmation**: Two-step confirmation dialog before clearing all materials from load
+- **Landscape Support**: CSS media queries for horizontal phone orientation in truck-mounted holders
+- **Spanish Language**: Full Spanish translation for 17% Hispanic/Latino workforce (EN/ES toggle in header)
+
 ## Handover Documentation
 A comprehensive handover package has been prepared for corporate tech team transfer:
 - **HANDOVER.md**: Complete technical documentation including:

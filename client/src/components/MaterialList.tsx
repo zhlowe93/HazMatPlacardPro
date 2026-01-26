@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Pencil, AlertTriangle, X } from "lucide-react";
 import { getPlacardColor, isTable1Material } from "@/lib/hazmat-data";
+import { useLanguage } from "@/hooks/use-language";
 
 interface Material {
   id: string;
@@ -36,13 +37,14 @@ const getHazardClassColor = (hazardClass: string): string => {
 };
 
 export default function MaterialList({ materials, onRemoveMaterial, onEditMaterial, onClearAll }: MaterialListProps) {
+  const { t } = useLanguage();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   if (materials.length === 0) {
     return (
       <Card className="p-8">
         <p className="text-center text-muted-foreground text-base">
-          No materials added yet. Add your first hazmat material above.
+          {t("list.empty")}
         </p>
       </Card>
     );
@@ -65,13 +67,13 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
       <Card className="p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-muted-foreground">Total Materials</p>
+            <p className="text-sm text-muted-foreground">{t("list.totalMaterials")}</p>
             <p className="text-2xl font-bold font-mono" data-testid="text-total-materials">
               {materials.length}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">Total Weight</p>
+            <p className="text-sm text-muted-foreground">{t("list.totalWeight")}</p>
             <p className="text-2xl font-bold font-mono" data-testid="text-total-weight">
               {totalWeight.toFixed(2)} lbs
             </p>
@@ -85,40 +87,40 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
                 variant="outline"
                 size="lg"
                 onClick={() => setShowClearConfirm(true)}
-                className="w-full h-14 text-destructive border-destructive/30 hover:bg-destructive/10"
+                className="w-full h-16 text-destructive border-destructive/30 hover:bg-destructive/10"
                 data-testid="button-clear-all"
               >
                 <Trash2 className="w-5 h-5 mr-2" />
-                Clear All Materials
+                {t("button.clearAll")}
               </Button>
             ) : (
               <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 space-y-3" data-testid="confirm-clear-dialog">
                 <div className="flex items-center gap-2 text-destructive">
                   <AlertTriangle className="w-5 h-5" />
-                  <span className="font-semibold">Clear all {materials.length} materials?</span>
+                  <span className="font-semibold">{t("confirm.clearTitle")} ({materials.length})</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  This will remove all materials from your current load. This action cannot be undone.
+                  {t("confirm.clearDescription")}
                 </p>
                 <div className="flex gap-2">
                   <Button
                     variant="destructive"
                     size="lg"
                     onClick={handleClearAll}
-                    className="flex-1 h-14"
+                    className="flex-1 h-16"
                     data-testid="button-confirm-clear"
                   >
-                    Yes, Clear All
+                    {t("button.confirmClear")}
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
                     onClick={() => setShowClearConfirm(false)}
-                    className="flex-1 h-14"
+                    className="flex-1 h-16"
                     data-testid="button-cancel-clear"
                   >
                     <X className="w-4 h-4 mr-2" />
-                    Cancel
+                    {t("button.cancel")}
                   </Button>
                 </div>
               </div>

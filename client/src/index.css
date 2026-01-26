@@ -449,46 +449,28 @@
 /* LANDSCAPE ORIENTATION SUPPORT */
 /* Optimizations for horizontal phone orientation in truck-mounted holders */
 @media screen and (orientation: landscape) and (max-height: 500px) {
-  /* Reduce header height in landscape */
-  .landscape-compact-header {
-    height: 48px !important;
+  /* Reduce header padding in landscape for more content space */
+  header {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
   }
 
-  /* Make tabs more compact in landscape */
-  .landscape-compact-tabs {
-    height: 48px !important;
+  /* More compact main content spacing */
+  main {
+    padding-top: 0.5rem !important;
+    padding-bottom: 1rem !important;
   }
 
-  /* Reduce vertical spacing in landscape */
-  .space-y-6 {
-    --tw-space-y-reverse: 0;
-    margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
-    margin-bottom: calc(1rem * var(--tw-space-y-reverse));
-  }
-
-  /* Reduce padding in cards */
-  .landscape-compact-card {
+  /* Cards are more compact in landscape */
+  .card {
     padding: 0.75rem !important;
-  }
-
-  /* Two-column layout for landscape on the Placards display */
-  .landscape-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  /* Make placards smaller in landscape to fit more */
-  .landscape-placard-compact {
-    transform: scale(0.85);
-    transform-origin: center;
   }
 }
 
 /* Landscape orientation for wider screens (tablets in landscape) */
 @media screen and (orientation: landscape) and (min-width: 768px) {
-  /* Two-column form layout in landscape tablets */
-  .landscape-form-grid {
+  /* Two-column layout for placard grids in tablet landscape */
+  .placard-grid-landscape {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
@@ -497,9 +479,12 @@
 
 /* Ensure touch targets stay accessible in landscape */
 @media screen and (orientation: landscape) {
-  /* Maintain minimum touch target size */
-  .touch-target-landscape {
+  /* Maintain minimum touch target size in landscape */
+  button, 
+  [role="button"],
+  input,
+  select,
+  .touch-target {
     min-height: 48px;
-    min-width: 48px;
   }
 }
