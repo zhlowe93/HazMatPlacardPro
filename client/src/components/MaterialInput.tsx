@@ -335,6 +335,14 @@ export default function MaterialInput({
             <p className="text-xs text-muted-foreground">
               Combined weight of all containers for this material.
             </p>
+            {parseFloat(weight) > 10000 && (
+              <div className="flex items-center gap-2 p-2 mt-2 rounded bg-orange-500/20 border border-orange-500/40" data-testid="warning-high-weight">
+                <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
+                <span className="text-xs text-orange-700 dark:text-orange-300">
+                  Unusually high weight ({parseFloat(weight).toLocaleString()} lbs). Please verify this is correct.
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
