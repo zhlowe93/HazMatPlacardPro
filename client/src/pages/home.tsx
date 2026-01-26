@@ -5,6 +5,7 @@ import MaterialList from "@/components/MaterialList";
 import PlacardDisplay from "@/components/PlacardDisplay";
 import ReferenceGuide from "@/components/ReferenceGuide";
 import ThemeToggle from "@/components/ThemeToggle";
+import QuickCheckSummary from "@/components/QuickCheckSummary";
 import { AlertTriangle } from "lucide-react";
 
 interface Material {
@@ -112,6 +113,7 @@ export default function Home() {
 
           <TabsContent value="placards" className="space-y-6">
             <div>
+              <QuickCheckSummary materials={materials} />
               <h2 className="text-xl font-semibold mb-2">Placard Requirements</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 Based on CFR 49 regulations and your current load
