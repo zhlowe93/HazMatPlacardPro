@@ -12,8 +12,9 @@ import {
 import { Card } from "@/components/ui/card";
 import { NumberStepper } from "@/components/ui/number-stepper";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Save, X, AlertTriangle } from "lucide-react";
+import { Plus, Save, X, AlertTriangle, CheckCircle } from "lucide-react";
 import { getHazardClassOptions } from "@/lib/hazmat-data";
+import { useToast } from "@/hooks/use-toast";
 
 interface Material {
   id: string;
@@ -65,6 +66,7 @@ export default function MaterialInput({
   onUpdateMaterial,
   onCancelEdit 
 }: MaterialInputProps) {
+  const { toast } = useToast();
   const [unNumber, setUnNumber] = useState("");
   const [materialName, setMaterialName] = useState("");
   const [hazardClass, setHazardClass] = useState("");
@@ -74,6 +76,12 @@ export default function MaterialInput({
   const [weight, setWeight] = useState("0");
   const [quantity, setQuantity] = useState(1);
   const [poisonInhalationHazard, setPoisonInhalationHazard] = useState(false);
+
+  const triggerHapticFeedback = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate([50, 30, 50]);
+    }
+  };
 
   // Show PIH option only for Class 6.1 with Packing Group I
   const showPihOption = hazardClass === "6.1" && packingGroup === "I";
@@ -115,7 +123,9 @@ export default function MaterialInput({
     e.preventDefault();
     const weightNum = parseFloat(weight);
     if (unNumber && materialName && hazardClass && packingGroup && !isNaN(weightNum) && weightNum > 0) {
-      if (editingMaterial && onUpdateMaterial) {
+      const isEditing = editingMaterial && onUpdateMaterial;
+      
+      if (isEditing) {
         onUpdateMaterial({
           ...editingMaterial,
           unNumber,
@@ -141,6 +151,15 @@ export default function MaterialInput({
           poisonInhalationHazard,
         });
       }
+      
+      triggerHapticFeedback();
+      
+      toast({
+        title: isEditing ? "Material Updated" : "Material Added",
+        description: `${unNumber} - ${materialName} (${weightNum.toLocaleString()} lbs)`,
+        duration: 2000,
+      });
+      
       resetForm();
       if (onCancelEdit) onCancelEdit();
     }
