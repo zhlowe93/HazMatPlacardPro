@@ -445,3 +445,61 @@
     inset: -1px;
   }
 }
+
+/* LANDSCAPE ORIENTATION SUPPORT */
+/* Optimizations for horizontal phone orientation in truck-mounted holders */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  /* Reduce header height in landscape */
+  .landscape-compact-header {
+    height: 48px !important;
+  }
+
+  /* Make tabs more compact in landscape */
+  .landscape-compact-tabs {
+    height: 48px !important;
+  }
+
+  /* Reduce vertical spacing in landscape */
+  .space-y-6 {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(1rem * var(--tw-space-y-reverse));
+  }
+
+  /* Reduce padding in cards */
+  .landscape-compact-card {
+    padding: 0.75rem !important;
+  }
+
+  /* Two-column layout for landscape on the Placards display */
+  .landscape-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  /* Make placards smaller in landscape to fit more */
+  .landscape-placard-compact {
+    transform: scale(0.85);
+    transform-origin: center;
+  }
+}
+
+/* Landscape orientation for wider screens (tablets in landscape) */
+@media screen and (orientation: landscape) and (min-width: 768px) {
+  /* Two-column form layout in landscape tablets */
+  .landscape-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* Ensure touch targets stay accessible in landscape */
+@media screen and (orientation: landscape) {
+  /* Maintain minimum touch target size */
+  .touch-target-landscape {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}

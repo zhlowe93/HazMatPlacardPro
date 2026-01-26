@@ -5,8 +5,10 @@ import MaterialList from "@/components/MaterialList";
 import PlacardDisplay from "@/components/PlacardDisplay";
 import ReferenceGuide from "@/components/ReferenceGuide";
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
 import QuickCheckSummary from "@/components/QuickCheckSummary";
 import { AlertTriangle } from "lucide-react";
+import { useLanguage } from "@/hooks/use-language";
 
 interface Material {
   id: string;
@@ -22,6 +24,7 @@ interface Material {
 }
 
 export default function Home() {
+  const { t } = useLanguage();
   const [materials, setMaterials] = useState<Material[]>([]);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
 
@@ -68,10 +71,13 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-6 h-6 text-primary" />
             <h1 className="text-lg font-bold" data-testid="text-app-title">
-              Hazmat Placard
+              {t("app.title")}
             </h1>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-1">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -79,21 +85,21 @@ export default function Home() {
         <Tabs defaultValue="materials" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 h-16 sticky top-16 z-40 bg-muted shadow-sm">
             <TabsTrigger value="materials" data-testid="tab-materials" className="text-lg py-4">
-              Materials
+              {t("tabs.materials")}
             </TabsTrigger>
             <TabsTrigger value="placards" data-testid="tab-placards" className="text-lg py-4">
-              Placards
+              {t("tabs.placards")}
             </TabsTrigger>
             <TabsTrigger value="reference" data-testid="tab-reference" className="text-lg py-4">
-              Reference
+              {t("tabs.reference")}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="materials" className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-2">Add Hazmat Material</h2>
+              <h2 className="text-xl font-semibold mb-2">{t("materials.add.title")}</h2>
               <p className="text-sm text-muted-foreground mb-4">
-                Enter the details of each hazardous material you're transporting
+                {t("materials.add.description")}
               </p>
               <MaterialInput 
                 onAddMaterial={handleAddMaterial}
@@ -104,9 +110,9 @@ export default function Home() {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold mb-2">Current Load</h2>
+              <h2 className="text-xl font-semibold mb-2">{t("materials.current.title")}</h2>
               <p className="text-sm text-muted-foreground mb-4">
-                Review and manage your hazmat materials
+                {t("materials.current.description")}
               </p>
               <MaterialList 
                 materials={materials} 
@@ -120,9 +126,9 @@ export default function Home() {
           <TabsContent value="placards" className="space-y-6">
             <div>
               <QuickCheckSummary materials={materials} />
-              <h2 className="text-xl font-semibold mb-2">Placard Requirements</h2>
+              <h2 className="text-xl font-semibold mb-2">{t("placards.title")}</h2>
               <p className="text-sm text-muted-foreground mb-4">
-                Based on CFR 49 regulations and your current load
+                {t("placards.description")}
               </p>
               <PlacardDisplay materials={materials} />
             </div>
