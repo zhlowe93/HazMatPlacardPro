@@ -121,18 +121,18 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
                   size="icon"
                   onClick={() => onEditMaterial(material)}
                   data-testid={`button-edit-${material.id}`}
-                  className="h-12 w-12"
+                  className="h-16 w-16"
                 >
-                  <Pencil className="w-5 h-5" />
+                  <Pencil className="w-6 h-6" />
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => onRemoveMaterial(material.id)}
                   data-testid={`button-remove-${material.id}`}
-                  className="h-12 w-12 text-destructive border-destructive/20 hover:bg-destructive/10"
+                  className="h-16 w-16 text-destructive border-destructive/20 hover:bg-destructive/10"
                 >
-                  <Trash2 className="w-6 h-6" />
+                  <Trash2 className="w-7 h-7" />
                 </Button>
               </div>
             </div>

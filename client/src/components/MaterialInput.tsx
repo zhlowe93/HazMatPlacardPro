@@ -164,7 +164,7 @@ export default function MaterialInput({
             placeholder="e.g., UN1203"
             value={unNumber}
             onChange={(e) => setUnNumber(e.target.value)}
-            className="h-12 text-base"
+            className="h-16 text-lg"
           />
         </div>
 
@@ -178,7 +178,7 @@ export default function MaterialInput({
             placeholder="e.g., Gasoline"
             value={materialName}
             onChange={(e) => setMaterialName(e.target.value)}
-            className="h-12 text-base"
+            className="h-16 text-lg"
           />
         </div>
 
@@ -190,7 +190,7 @@ export default function MaterialInput({
             <SelectTrigger
               id="hazard-class"
               data-testid="select-hazard-class"
-              className="h-12 text-base"
+              className="h-16 text-lg"
             >
               <SelectValue placeholder="Select hazard class" />
             </SelectTrigger>
@@ -212,7 +212,7 @@ export default function MaterialInput({
             <SelectTrigger
               id="packing-group"
               data-testid="select-packing-group"
-              className="h-12 text-base"
+              className="h-16 text-lg"
             >
               <SelectValue placeholder="Select packing group" />
             </SelectTrigger>
@@ -238,7 +238,7 @@ export default function MaterialInput({
                     data-testid="checkbox-pih"
                     checked={poisonInhalationHazard}
                     onCheckedChange={(checked) => setPoisonInhalationHazard(checked === true)}
-                    className="h-6 w-6"
+                    className="h-8 w-8"
                   />
                   <Label 
                     htmlFor="poison-inhalation-hazard" 
@@ -264,7 +264,7 @@ export default function MaterialInput({
             <SelectTrigger
               id="container-type"
               data-testid="select-container-type"
-              className="h-12 text-base"
+              className="h-16 text-lg"
             >
               <SelectValue placeholder="Select container type" />
             </SelectTrigger>
@@ -344,17 +344,17 @@ export default function MaterialInput({
               variant="outline"
               onClick={handleCancel}
               data-testid="button-cancel-edit"
-              className="flex-1 h-12 text-base"
+              className="flex-1 h-16 text-lg"
               size="default"
             >
-              <X className="w-5 h-5 mr-2" />
+              <X className="w-6 h-6 mr-2" />
               Cancel
             </Button>
           )}
           <Button
             type="submit"
             data-testid={editingMaterial ? "button-update-material" : "button-add-material"}
-            className={editingMaterial ? "flex-1 h-12 text-base" : "w-full h-12 text-base"}
+            className={editingMaterial ? "flex-1 h-16 text-lg" : "w-full h-16 text-lg"}
             size="default"
           >
             {editingMaterial ? (

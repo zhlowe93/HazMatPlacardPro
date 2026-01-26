@@ -34,9 +34,11 @@ The application is designed as a session-based tool, making a database unnecessa
 - **Display Format**: Shows as "1,500 lbs (3 containers)" in the material list
 
 ## Mobile Optimization (January 2026)
-- **Touch Targets**: All interactive elements meet 48px minimum, NumberStepper buttons are 56px
-- **Tabs**: Sticky navigation with 56px height for easy thumb access
-- **Inputs**: All form inputs are 56px height (h-14) with large text
+- **Touch Targets**: All interactive elements are 64px (h-16) for work glove compatibility
+- **NumberStepper**: 64px buttons with 28px icons for easy +/- tapping with gloves
+- **Tabs**: Sticky navigation with 64px height for easy thumb access
+- **Inputs**: All form inputs are 64px height (h-16) with large text (text-lg)
+- **Buttons**: Edit/Delete buttons are 64px x 64px for glove-friendly operation
 - **Layout**: Single-column mobile layout with responsive grid for tablets/desktop
 - **Dark Mode**: Automatic persistence with high-contrast support
 

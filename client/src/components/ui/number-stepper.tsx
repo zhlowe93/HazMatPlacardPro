@@ -68,9 +68,9 @@ export function NumberStepper({
         onClick={handleDecrement}
         disabled={numValue <= min}
         data-testid={dataTestId ? `${dataTestId}-decrement` : undefined}
-        className="h-14 w-14 shrink-0 border-2"
+        className="h-16 w-16 shrink-0 border-2"
       >
-        <Minus className="h-6 w-6" />
+        <Minus className="h-7 w-7" />
       </Button>
 
       <Input
@@ -83,7 +83,7 @@ export function NumberStepper({
         step={step}
         placeholder={placeholder}
         data-testid={dataTestId}
-        className="h-14 text-lg font-mono text-center border-2"
+        className="h-16 text-xl font-mono text-center border-2"
       />
 
       <Button
@@ -93,9 +93,9 @@ export function NumberStepper({
         onClick={handleIncrement}
         disabled={max !== undefined && numValue >= max}
         data-testid={dataTestId ? `${dataTestId}-increment` : undefined}
-        className="h-14 w-14 shrink-0 border-2"
+        className="h-16 w-16 shrink-0 border-2"
       >
-        <Plus className="h-6 w-6" />
+        <Plus className="h-7 w-7" />
       </Button>
     </div>
   );
