@@ -192,6 +192,7 @@ interface Material {
   unNumber: string;
   materialName: string;
   hazardClass: string;
+  subsidiaryClass?: string;
   packingGroup: string;
   weight: string;
   quantity: number;
@@ -467,6 +468,51 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
     });
   });
   
+  // 49 CFR §172.505: Subsidiary hazard classes 4.3 and 2.3 require their placards at ANY quantity
+  // regardless of the primary class or weight threshold.
+  // Collect all unique subsidiary classes across all materials
+  const subsidiaryClassTriggers = new Set<string>();
+  materials.forEach((material) => {
+    if (material.subsidiaryClass) {
+      subsidiaryClassTriggers.add(material.subsidiaryClass);
+    }
+  });
+
+  // §172.505(a): Subsidiary 4.3 → mandatory DANGEROUS WHEN WET placard at any quantity
+  // §172.505(b): Subsidiary 2.3 → mandatory POISON GAS placard at any quantity
+  const criticalSubsidiaries = ["4.3", "2.3"];
+  criticalSubsidiaries.forEach((subClass) => {
+    if (!subsidiaryClassTriggers.has(subClass)) return;
+
+    // Check if there's already a required placard for this class (from primary class materials)
+    const existingRequired = requirements.find(
+      (r) => r.hazardClass === subClass && r.required
+    );
+    if (existingRequired) return; // Already covered by primary class logic
+
+    // Find which materials triggered this via their subsidiary class
+    const triggeringMaterials = materials.filter((m) => m.subsidiaryClass === subClass);
+    const totalSubWeight = triggeringMaterials.reduce((sum, m) => sum + parseFloat(m.weight), 0);
+    const matNames = triggeringMaterials.map((m) => `${m.unNumber} (${m.hazardClass})`).join(", ");
+
+    requirements.push({
+      hazardClass: subClass,
+      label: `Class ${subClass}`,
+      required: true,
+      reason: `Subsidiary hazard class ${subClass} - placard required at any quantity per 49 CFR §172.505 (triggered by: ${matNames})`,
+      color: getPlacardColor(subClass),
+      isTable1: true, // 4.3 and 2.3 are Table 1 — this also prevents DANGEROUS placard
+      isBulk: false,
+      weight: totalSubWeight,
+      unNumber: undefined,
+      key: `subsidiary-${subClass}`,
+      isPih: false,
+    });
+  });
+
+  // For other subsidiary classes (e.g., 3, 6.1, 8): these don't independently trigger placards
+  // per §172.505; they are label-only designations. No placard entries are added for them.
+
   return requirements.sort((a, b) => {
     // Sort by class number first
     const classCompare = parseFloat(a.hazardClass) - parseFloat(b.hazardClass);

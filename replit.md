@@ -22,6 +22,7 @@ The frontend is built with React and TypeScript, utilizing Wouter for routing an
     - Containers 95 gallons or below require placards when the aggregate weight of all Table 2 materials combined exceeds 1,001 lbs.
     - The "DANGEROUS" placard option is shown when applicable (non-bulk only, 2+ Table 2 classes, no Table 1 materials), with the 2,205 lb threshold correctly applied per loading facility (stop number).
     - Placards are visually displayed with DOT-standard color coding and proper contrast for UN numbers.
+    - **Subsidiary Hazard Class support (49 CFR §172.505)**: Materials can have a secondary/subsidiary class (e.g., Class 6.1 with subsidiary 4.3, written as "6.1 (4.3)" on shipping papers). Per §172.505(a), subsidiary class 4.3 requires a DANGEROUS WHEN WET placard at any quantity. Per §172.505(b), subsidiary class 2.3 requires a POISON GAS placard at any quantity. Other subsidiary classes (3, 6.1, 8, etc.) are label-only and do not independently trigger placards. Subsidiary 4.3 and 2.3 are treated as Table 1, preventing DANGEROUS placard eligibility.
 - **Reference Guide**: Provides comprehensive information on hazard classes, container size guidelines (95-gallon threshold), DANGEROUS placard rules, and Table 1 vs. Table 2 requirements.
 
 ### System Design Choices

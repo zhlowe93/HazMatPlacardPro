@@ -348,6 +348,61 @@ export default function ReferenceGuide() {
         </Accordion>
       </Card>
 
+      <Card className="p-6 border-2 border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-950">
+        <div className="flex items-start gap-3">
+          <Info className="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+          <div className="w-full">
+            <h3 className="font-semibold text-lg text-blue-900 dark:text-blue-100 mb-2">
+              Subsidiary (Secondary) Hazard Classes — 49 CFR §172.505
+            </h3>
+            <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
+              Some materials have <strong>two hazard classes</strong>: a primary class and a subsidiary (secondary) class shown in parentheses on shipping papers. This is critical for waste materials at Clean Harbors.
+            </p>
+
+            <div className="bg-background rounded-md p-3 mb-3 font-mono text-sm border border-blue-200 dark:border-blue-700">
+              <p className="text-muted-foreground text-xs mb-1">Example shipping paper entry:</p>
+              <p className="font-bold">UN3288, Toxic Solid, n.o.s., <span className="text-blue-700 dark:text-blue-300">6.1 (4.3)</span>, PG II</p>
+              <p className="text-muted-foreground text-xs mt-1">Primary: Class 6.1 &nbsp;|&nbsp; Subsidiary: Class 4.3 (in parentheses)</p>
+            </div>
+
+            <div className="space-y-3 text-sm">
+              <div className="bg-background rounded-md p-3 border border-red-300 dark:border-red-700">
+                <p className="font-bold text-destructive mb-1">§172.505(a) — Subsidiary Class 4.3 (Dangerous When Wet)</p>
+                <p className="text-muted-foreground text-xs">
+                  A <strong>DANGEROUS WHEN WET</strong> placard is required at <strong>ANY quantity</strong> when any material lists 4.3 as a subsidiary class — regardless of total weight. This is a Table 1-equivalent requirement triggered by the secondary class alone. It also prevents use of the DANGEROUS placard.
+                </p>
+                <div className="mt-2 bg-red-50 dark:bg-red-950 p-2 rounded text-xs font-semibold text-red-700 dark:text-red-300">
+                  Example: 1 lb of Class 6.1 (4.3) waste = MUST display both Class 6.1 and Class 4.3 placards
+                </div>
+              </div>
+
+              <div className="bg-background rounded-md p-3 border border-red-300 dark:border-red-700">
+                <p className="font-bold text-destructive mb-1">§172.505(b) — Subsidiary Class 2.3 (Poison Gas)</p>
+                <p className="text-muted-foreground text-xs">
+                  A <strong>POISON GAS</strong> placard is required at <strong>ANY quantity</strong> when any material lists 2.3 as a subsidiary class. Same Table 1-equivalent requirement.
+                </p>
+              </div>
+
+              <div className="bg-background rounded-md p-3 border border-muted-foreground/20">
+                <p className="font-bold mb-1">Other Subsidiary Classes (3, 6.1, 8, etc.)</p>
+                <p className="text-muted-foreground text-xs">
+                  Other subsidiary classes (e.g., Class 6.1 as a subsidiary) do <strong>not</strong> independently trigger a separate placard requirement. They appear on container labels but do not change placarding decisions — only the primary class determines placard requirements for these.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700 text-xs text-blue-700 dark:text-blue-300">
+              <p className="font-semibold mb-1">How to use this app for subsidiary classes:</p>
+              <ol className="space-y-1 list-decimal list-inside text-muted-foreground">
+                <li>Check shipping papers for any class in parentheses after the primary class</li>
+                <li>In the Materials tab, use the "Subsidiary Hazard Class" dropdown to select it</li>
+                <li>The app will automatically apply §172.505 rules and show any additional required placards</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </Card>
+
       <Card className="p-6 bg-accent">
         <h3 className="font-semibold mb-2 text-base">Container Size Guidelines</h3>
         <div className="space-y-3 text-sm text-muted-foreground">

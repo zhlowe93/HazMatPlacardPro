@@ -15,6 +15,7 @@ interface Material {
   unNumber: string;
   materialName: string;
   hazardClass: string;
+  subsidiaryClass?: string;
   packingGroup: string;
   weight: string;
   quantity: number;

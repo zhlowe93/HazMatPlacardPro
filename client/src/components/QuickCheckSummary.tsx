@@ -7,6 +7,7 @@ interface Material {
   unNumber: string;
   materialName: string;
   hazardClass: string;
+  subsidiaryClass?: string;
   packingGroup: string;
   weight: string;
   quantity: number;
@@ -32,6 +33,8 @@ export default function QuickCheckSummary({ materials }: QuickCheckSummaryProps)
   const uniqueClasses = new Set(materials.map(m => m.hazardClass.split(".")[0])).size;
   const hasBulk = materials.some(m => m.containerType === "bulk");
   const hasPIH = materials.some(m => m.poisonInhalationHazard);
+  const subsidiaryClasses = [...new Set(materials.filter(m => m.subsidiaryClass).map(m => m.subsidiaryClass as string))];
+  const hasCriticalSubsidiary = subsidiaryClasses.some(c => c === "4.3" || c === "2.3");
 
   return (
     <Card className="p-4 mb-4 bg-primary/10 border-primary/30">
@@ -79,6 +82,12 @@ export default function QuickCheckSummary({ materials }: QuickCheckSummaryProps)
           <span className="px-2 py-1 rounded bg-destructive/20 text-destructive flex items-center gap-1" data-testid="badge-has-pih">
             <AlertTriangle className="w-3 h-3" />
             {t("quick.pih")}
+          </span>
+        )}
+        {hasCriticalSubsidiary && (
+          <span className="px-2 py-1 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center gap-1" data-testid="badge-has-subsidiary">
+            <AlertTriangle className="w-3 h-3" />
+            {t("quick.subsidiary")}: {subsidiaryClasses.filter(c => c === "4.3" || c === "2.3").join(", ")}
           </span>
         )}
       </div>

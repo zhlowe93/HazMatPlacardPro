@@ -11,6 +11,7 @@ interface Material {
   unNumber: string;
   materialName: string;
   hazardClass: string;
+  subsidiaryClass?: string;
   packingGroup: string;
   weight: string;
   quantity: number;
@@ -155,6 +156,11 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
                   {(isTable1Material(material.hazardClass) || material.poisonInhalationHazard) && (
                     <Badge variant="destructive" className="text-xs">
                       Table 1
+                    </Badge>
+                  )}
+                  {material.subsidiaryClass && (
+                    <Badge variant="outline" className="text-xs font-mono border-amber-500 text-amber-700 dark:text-amber-400" data-testid={`badge-subsidiary-${material.id}`}>
+                      +{material.subsidiaryClass}
                     </Badge>
                   )}
                   {material.containerType === "bulk" && (

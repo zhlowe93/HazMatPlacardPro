@@ -21,6 +21,7 @@ interface Material {
   unNumber: string;
   materialName: string;
   hazardClass: string;
+  subsidiaryClass?: string;
   packingGroup: string;
   weight: string;
   quantity: number;
@@ -34,6 +35,7 @@ interface MaterialInputProps {
     unNumber: string;
     materialName: string;
     hazardClass: string;
+    subsidiaryClass?: string;
     packingGroup: string;
     weight: string;
     quantity: number;
@@ -75,6 +77,7 @@ export default function MaterialInput({
   const [stopNumber, setStopNumber] = useState(1);
   const [weight, setWeight] = useState("0");
   const [quantity, setQuantity] = useState(1);
+  const [subsidiaryClass, setSubsidiaryClass] = useState("none");
   const [poisonInhalationHazard, setPoisonInhalationHazard] = useState(false);
 
   const triggerHapticFeedback = () => {
@@ -98,6 +101,7 @@ export default function MaterialInput({
       setUnNumber(editingMaterial.unNumber);
       setMaterialName(editingMaterial.materialName);
       setHazardClass(editingMaterial.hazardClass);
+      setSubsidiaryClass(editingMaterial.subsidiaryClass || "none");
       setPackingGroup(editingMaterial.packingGroup);
       setContainerType(editingMaterial.containerType);
       setStopNumber(editingMaterial.stopNumber);
@@ -111,6 +115,7 @@ export default function MaterialInput({
     setUnNumber("");
     setMaterialName("");
     setHazardClass("");
+    setSubsidiaryClass("none");
     setPackingGroup("");
     setContainerType("non-bulk");
     setStopNumber(1);
@@ -131,6 +136,7 @@ export default function MaterialInput({
           unNumber,
           materialName,
           hazardClass,
+          subsidiaryClass: subsidiaryClass !== "none" ? subsidiaryClass : undefined,
           packingGroup,
           containerType,
           stopNumber,
@@ -143,6 +149,7 @@ export default function MaterialInput({
           unNumber,
           materialName,
           hazardClass,
+          subsidiaryClass: subsidiaryClass !== "none" ? subsidiaryClass : undefined,
           packingGroup,
           containerType,
           stopNumber,
@@ -221,6 +228,34 @@ export default function MaterialInput({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="subsidiary-class" className="text-base font-medium">
+            Subsidiary Hazard Class (if any)
+          </Label>
+          <Select value={subsidiaryClass} onValueChange={setSubsidiaryClass}>
+            <SelectTrigger
+              id="subsidiary-class"
+              data-testid="select-subsidiary-class"
+              className="h-16 text-lg"
+            >
+              <SelectValue placeholder="None" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none" data-testid="option-subsidiary-none">None</SelectItem>
+              {hazardClasses
+                .filter((hc) => hc.value !== hazardClass)
+                .map((hc) => (
+                  <SelectItem key={hc.value} value={hc.value} data-testid={`option-subsidiary-${hc.value}`}>
+                    {hc.label}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Check shipping papers for a class in parentheses, e.g., <strong>6.1 (4.3)</strong>. Classes 4.3 and 2.3 as secondary require placards at <strong>any quantity</strong> per 49 CFR §172.505.
+          </p>
         </div>
 
         <div className="space-y-2">
