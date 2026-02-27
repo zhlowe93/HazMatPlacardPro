@@ -54,23 +54,23 @@ IMPORTANT RULES:
 - Waste materials often have "RQ" (reportable quantity) or "WASTE" prefixes - include in material name
 - Be conservative: if you can't read something clearly, return null rather than guessing
 
-Return your response as valid JSON in this exact format:
+Respond ONLY with a raw JSON object in exactly this format. No markdown, no code fences, no explanation — just the JSON:
 {
-  "documentType": "EPA Manifest" or "DOT Shipping Paper" or "Unknown",
+  "documentType": "EPA Manifest",
   "rawText": "the text you can read from the document",
   "materials": [
     {
-      "unNumber": "UN3288" or null,
-      "materialName": "Toxic Solid, Inorganic, N.O.S." or null,
-      "hazardClass": "6.1" or null,
-      "subsidiaryClass": "4.3" or null,
-      "packingGroup": "II" or null,
-      "weight": "500" or null,
-      "weightUnit": "lbs" or "kg",
-      "quantity": 5 or null,
-      "containerType": "non-bulk" or "bulk" or null,
-      "confidence": "high" or "medium" or "low",
-      "notes": "any special notes about this material" or null
+      "unNumber": "UN3288",
+      "materialName": "Toxic Solid, Inorganic, N.O.S.",
+      "hazardClass": "6.1",
+      "subsidiaryClass": null,
+      "packingGroup": "II",
+      "weight": "500",
+      "weightUnit": "lbs",
+      "quantity": 5,
+      "containerType": "non-bulk",
+      "confidence": "high",
+      "notes": null
     }
   ]
 }`;
@@ -78,7 +78,7 @@ Return your response as valid JSON in this exact format:
 export async function scanManifest(imageBase64: string, mimeType: string = "image/jpeg"): Promise<ScanResult> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5.2",
+      model: "gpt-4o",
       messages: [
         {
           role: "user",
@@ -97,12 +97,12 @@ export async function scanManifest(imageBase64: string, mimeType: string = "imag
           ],
         },
       ],
-      max_completion_tokens: 4096,
-      response_format: { type: "json_object" },
+      max_tokens: 4096,
     });
 
     const content = response.choices[0]?.message?.content;
     if (!content) {
+      console.error("scan-manifest: no content in API response", JSON.stringify(response));
       return {
         success: false,
         materials: [],
@@ -112,7 +112,21 @@ export async function scanManifest(imageBase64: string, mimeType: string = "imag
       };
     }
 
-    const parsed = JSON.parse(content);
+    let parsed: any;
+    try {
+      const cleaned = content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+      parsed = JSON.parse(cleaned);
+    } catch (parseErr) {
+      console.error("scan-manifest: JSON parse failed. Raw content:", content);
+      return {
+        success: false,
+        materials: [],
+        rawText: content,
+        documentType: "Unknown",
+        error: "AI returned an unreadable response. Please try again with a clearer photo.",
+      };
+    }
+
     return {
       success: true,
       materials: parsed.materials || [],
@@ -120,7 +134,7 @@ export async function scanManifest(imageBase64: string, mimeType: string = "imag
       documentType: parsed.documentType || "Unknown",
     };
   } catch (err: any) {
-    console.error("Manifest scan error:", err);
+    console.error("scan-manifest: API error:", err?.status, err?.message, err?.error ?? "");
     return {
       success: false,
       materials: [],
