@@ -12,7 +12,20 @@ I prefer iterative development with small, testable changes. Please provide deta
 The application features a mobile-first, responsive design optimized for truck cabs, including large touch targets (minimum 48px) and high-contrast elements for visibility in varied lighting conditions. It supports both light and dark modes with persistent theme preferences. The interface is clean and professional, organized into a three-tab structure: Materials, Placards, and Reference. Custom NumberStepper components with large plus/minus buttons are used for number inputs (stop number, quantity, weight) to improve mobile usability.
 
 ### Technical Implementations
-The frontend is built with React and TypeScript, utilizing Wouter for routing and Shadcn UI for components, styled with TailwindCSS. Client-side state management is employed, negating the need for a persistent database in the MVP. The backend is a minimal Express.js server, currently serving only static frontend assets.
+The frontend is built with React and TypeScript, utilizing Wouter for routing and Shadcn UI for components, styled with TailwindCSS. Client-side state management is employed, negating the need for a persistent database in the MVP. The backend is an Express.js server that serves static frontend assets and provides the manifest scanning API.
+
+### AI Manifest Scanner (February 2026)
+- **Feature**: "Scan Manifest / Shipping Paper" button above the manual entry form uses the device camera (rear-facing via `capture="environment"`) or photo gallery to photograph a hazmat shipping document
+- **AI Model**: OpenAI GPT-5.2 Vision via Replit AI Integrations (no user API key needed), called at `POST /api/scan-manifest`
+- **Documents Supported**: EPA Uniform Hazardous Waste Manifest (Form 8700-22), DOT Uniform Hazardous Materials Shipping Papers, Clean Harbors internal manifests
+- **Fields Extracted**: UN Number, Material Name (Proper Shipping Name), Hazard Class, Subsidiary Class, Packing Group, Weight (with kg→lbs conversion), Container Type, Quantity
+- **Multi-material**: Manifests with multiple waste streams return multiple material cards; driver checks/unchecks each one before importing
+- **Single material**: Auto-populates the form below so driver can review before submitting
+- **Client-side compression**: Images over 2048px are resized via Canvas API before upload to stay within API limits
+- **Confidence badges**: Each extracted material shows High/Medium/Low confidence; low-confidence fields are flagged for manual verification
+- **Error handling**: Blurry/unreadable documents, network errors, and partial reads all show clear messages with retry option
+- **Safety disclaimer**: Always shown reminding drivers to verify AI fields against physical shipping papers
+- **Files**: `server/scan-manifest.ts` (AI logic + prompt), `server/routes.ts` (endpoint), `client/src/components/ManifestScanner.tsx` (UI)
 
 ### Feature Specifications
 - **Material Management**: Users can add, remove, and edit hazardous materials, specifying UN numbers, hazard classes, packing groups, total weight, and quantity. A simplified "Above 95 Gallons" or "95 Gallons or Below" selection replaces technical bulk/non-bulk terminology for container size. Materials are tracked by "stop number" for multi-location pickups.

@@ -37,6 +37,14 @@ export default function Home() {
     setMaterials((prev) => [...prev, newMaterial]);
   };
 
+  const handleAddMaterials = (materials: Omit<Material, "id">[]) => {
+    const newMaterials: Material[] = materials.map((m, i) => ({
+      ...m,
+      id: (Date.now() + i).toString(),
+    }));
+    setMaterials((prev) => [...prev, ...newMaterials]);
+  };
+
   const handleEditMaterial = (material: Material) => {
     setEditingMaterial(material);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -102,8 +110,9 @@ export default function Home() {
               <p className="text-sm text-muted-foreground mb-4">
                 {t("materials.add.description")}
               </p>
-              <MaterialInput 
+              <MaterialInput
                 onAddMaterial={handleAddMaterial}
+                onAddMaterials={handleAddMaterials}
                 editingMaterial={editingMaterial}
                 onUpdateMaterial={handleUpdateMaterial}
                 onCancelEdit={handleCancelEdit}
