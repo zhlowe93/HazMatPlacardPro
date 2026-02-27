@@ -45,8 +45,27 @@ For each numbered material row in Section 9b, extract:
 4. Hazard Class — primary class number only (e.g. "6.1", "3", "4.3", "8", "2.3")
 5. Subsidiary Hazard Class — the number inside parentheses after the primary class, if present (e.g. if "6.1 (4.3)" the subsidiary is "4.3")
 6. Packing Group — Roman numeral I, II, or III only (or "N/A" if not shown)
-7. Total Weight — numbers only, no units
-8. Weight Unit — "lbs" or "kg" (default "lbs" if not shown)
+7. Weight — read from TWO columns that go together:
+   - Section 11 "Total Quantity" = the numeric value (e.g. 400)
+   - Section 12 "Unit Wt./Vol." = a single letter code (e.g. P)
+   These must always be read as a pair. The letter code tells you the unit.
+
+   Unit code table:
+   | Code | Meaning      | Action |
+   |------|------------- |--------|
+   | P    | Pounds       | weight = the number, weightUnit = "lbs" |
+   | K    | Kilograms    | weight = the number, weightUnit = "kg" (frontend will convert to lbs) |
+   | T    | Short tons   | weight = number × 2000, weightUnit = "lbs" |
+   | G    | Gallons      | weight = null, weightUnit = null, add note: "Weight not available — unit is gallons (G). Enter weight manually." |
+   | L    | Liters       | weight = null, weightUnit = null, add note: "Weight not available — unit is liters (L). Enter weight manually." |
+   | Y    | Cubic yards  | weight = null, weightUnit = null, add note: "Weight not available — unit is cubic yards (Y). Enter weight manually." |
+   | ?    | Unrecognized | weight = null, confidence = "low", add note: "Unrecognized unit code '[letter]' — enter weight manually." |
+
+   Examples:
+   - Section 11 = 400, Section 12 = P → weight = "400", weightUnit = "lbs"
+   - Section 11 = 200, Section 12 = K → weight = "200", weightUnit = "kg"
+   - Section 11 = 2, Section 12 = T → weight = "4000", weightUnit = "lbs"
+   - Section 11 = 55, Section 12 = G → weight = null (volume, not weight)
 
 ---
 
