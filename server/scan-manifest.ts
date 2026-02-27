@@ -32,27 +32,70 @@ const HAZMAT_EXTRACTION_PROMPT = `You are an expert at reading DOT hazardous was
 - DOT Uniform Hazardous Materials Shipping Papers
 - Clean Harbors internal waste manifests
 
-Your job is to extract ALL hazardous material entries from the document image.
+Your job is to extract ALL hazardous material entries and return structured data.
 
-For each material line item in the document, extract:
-1. UN/NA Number (format: UN1234 or NA1234) - found in "UN/NA#" column or within the proper shipping name
-2. Proper Shipping Name / Material Name - the official DOT name for the material
-3. Hazard Class - the primary hazard class number (e.g., "6.1", "3", "4.3", "8", "2.3")
-4. Subsidiary Hazard Class - class in parentheses after primary class (e.g., if "6.1 (4.3)" the subsidiary is "4.3"). Only the class number inside the parentheses.
-5. Packing Group - Roman numeral I, II, or III (or N/A if not shown)
-6. Total Weight - the weight amount (numbers only, no units)
-7. Weight Unit - "lbs" or "kg" (default to "lbs" if not specified)
-8. Quantity - number of containers/drums/totes
-9. Container Type - "bulk" if container is described as tank, tote (>95 gal), tanker, or bulk. "non-bulk" for drums, boxes, bags, small containers (<=95 gal).
+---
 
-IMPORTANT RULES:
-- A manifest can have multiple materials - extract ALL of them
-- If a field is illegible or not present, return null for that field
-- For hazard class, only return the number (e.g. "6.1" not "Class 6.1")
-- For subsidiary class, only return the number inside parentheses (e.g. "4.3" not "(4.3)")
-- For packing group, only return "I", "II", "III", or "N/A"
-- Waste materials often have "RQ" (reportable quantity) or "WASTE" prefixes - include in material name
-- Be conservative: if you can't read something clearly, return null rather than guessing
+STEP 1 — READ SECTION 9b (Material Descriptions)
+
+For each numbered material row in Section 9b, extract:
+1. Row number (e.g. 1, 2, 3 — used to link to Section 14)
+2. UN/NA Number (format: UN1234 or NA1234)
+3. Proper Shipping Name / Material Name (include any WASTE or RQ prefix)
+4. Hazard Class — primary class number only (e.g. "6.1", "3", "4.3", "8", "2.3")
+5. Subsidiary Hazard Class — the number inside parentheses after the primary class, if present (e.g. if "6.1 (4.3)" the subsidiary is "4.3")
+6. Packing Group — Roman numeral I, II, or III only (or "N/A" if not shown)
+7. Total Weight — numbers only, no units
+8. Weight Unit — "lbs" or "kg" (default "lbs" if not shown)
+
+---
+
+STEP 2 — READ SECTION 14 (Special Handling Instructions and Additional Information)
+
+Clean Harbors uses a specific format in Section 14. Each material has one line:
+  [row#].[internal code]  ERG#[xxx]  [qty]x[size_or_code]
+
+Examples:
+  1.RFD-32  ERG#131  1x55
+  2.CHW-44  ERG#154  3x55
+  3.RFD-12  ERG#128  1xTOTE
+  4.CHW-01  ERG#171  2xFBIN
+  5.RFD-99  ERG#154  1x275
+
+Parsing rules for the [qty]x[size_or_code] part:
+- The number BEFORE the "x" is always the quantity (number of containers)
+- The value AFTER the "x" is the container size — it can be a number (gallons) or a text code
+
+Numeric gallon values:
+  - 55 or any value ≤ 95 → containerType = "non-bulk"
+  - 275 or any value > 95 → containerType = "bulk"
+
+Known text container codes (always bulk, >95 gallons):
+  - TOTE, TOT2, TOT3, or any code starting with TOT → bulk (totes are 275–330 gal)
+  - FBIN, FLEXBIN, or any code starting with FBIN → bulk (large flexible containers)
+
+Unknown text codes (not a number, not a known code above):
+  - Treat as bulk but set confidence = "low" so the driver is flagged to verify
+
+The row number at the start of a Section 14 line (e.g. "1." or "2.") matches the row number of the material in Section 9b. Use this to link the qty and containerType to the correct material.
+
+Section 14 data is AUTHORITATIVE — it overrides any container type inference from other parts of the document.
+
+If Section 14 is absent, illegible, or a material has no matching Section 14 entry:
+  Fall back to inferring container type from descriptive words in Section 9b (drum, barrel, bag, box → non-bulk; tote, tanker, tank → bulk). Set confidence = "medium" for fallback inferences.
+
+---
+
+STEP 3 — ASSEMBLE OUTPUT
+
+For each material from Section 9b, combine the data from Steps 1 and 2.
+
+Set confidence:
+  - "high" if UN number, hazard class, AND Section 14 container info were all clearly readable
+  - "medium" if some fields were inferred or partially legible
+  - "low" if container type came from an unrecognized code, or multiple key fields are missing/unclear
+
+---
 
 Respond ONLY with a raw JSON object in exactly this format. No markdown, no code fences, no explanation — just the JSON:
 {
@@ -61,19 +104,21 @@ Respond ONLY with a raw JSON object in exactly this format. No markdown, no code
   "materials": [
     {
       "unNumber": "UN3288",
-      "materialName": "Toxic Solid, Inorganic, N.O.S.",
+      "materialName": "WASTE Toxic Solid, Inorganic, N.O.S.",
       "hazardClass": "6.1",
       "subsidiaryClass": null,
       "packingGroup": "II",
       "weight": "500",
       "weightUnit": "lbs",
-      "quantity": 5,
+      "quantity": 3,
       "containerType": "non-bulk",
       "confidence": "high",
-      "notes": null
+      "notes": "Section 14: 3x55 — 3 drums of 55 gal"
     }
   ]
-}`;
+}
+
+If an unknown container code was used, include it in the notes field so the driver knows what to verify, e.g.: "notes": "Unrecognized container code 'XBIN' — verify container size (above or below 95 gal)"`;
 
 export async function scanManifest(imageBase64: string, mimeType: string = "image/jpeg"): Promise<ScanResult> {
   try {
