@@ -54,8 +54,13 @@ function normalizeMaterial(m: ExtractedMaterial, stopNumber: number) {
   if (m.weight) {
     const w = parseFloat(m.weight);
     if (!isNaN(w) && w > 0) {
-      if (m.weightUnit === "kg") {
+      const unit = (m.weightUnit || "").toUpperCase();
+      if (unit === "K" || unit === "KG") {
         weight = (w * 2.20462).toFixed(0);
+      } else if (unit === "T") {
+        weight = (w * 2000).toFixed(0);
+      } else if (unit === "G" || unit === "L" || unit === "Y") {
+        weight = "0";
       } else {
         weight = w.toFixed(0);
       }

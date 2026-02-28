@@ -50,22 +50,26 @@ For each numbered material row in Section 9b, extract:
    - Section 12 "Unit Wt./Vol." = a single letter code (e.g. P)
    These must always be read as a pair. The letter code tells you the unit.
 
-   Unit code table:
+   CRITICAL: Do NOT perform any math or multiplication yourself. Return the raw number exactly as written in Section 11, and the raw letter code exactly as written in Section 12. The app will handle all conversions.
+
+   Unit code table — return the letter code as-is in weightUnit:
    | Code | Meaning      | Action |
    |------|------------- |--------|
-   | P    | Pounds       | weight = the number, weightUnit = "lbs" |
-   | K    | Kilograms    | weight = the number, weightUnit = "kg" (frontend will convert to lbs) |
-   | T    | Short tons   | weight = number × 2000, weightUnit = "lbs" |
+   | P    | Pounds       | weight = exact number from Section 11, weightUnit = "P" |
+   | K    | Kilograms    | weight = exact number from Section 11, weightUnit = "K" |
+   | T    | Short tons   | weight = exact number from Section 11, weightUnit = "T" (do NOT multiply by 2000 — app handles this) |
    | G    | Gallons      | weight = null, weightUnit = null, add note: "Weight not available — unit is gallons (G). Enter weight manually." |
    | L    | Liters       | weight = null, weightUnit = null, add note: "Weight not available — unit is liters (L). Enter weight manually." |
    | Y    | Cubic yards  | weight = null, weightUnit = null, add note: "Weight not available — unit is cubic yards (Y). Enter weight manually." |
    | ?    | Unrecognized | weight = null, confidence = "low", add note: "Unrecognized unit code '[letter]' — enter weight manually." |
 
    Examples:
-   - Section 11 = 400, Section 12 = P → weight = "400", weightUnit = "lbs"
-   - Section 11 = 200, Section 12 = K → weight = "200", weightUnit = "kg"
-   - Section 11 = 2, Section 12 = T → weight = "4000", weightUnit = "lbs"
+   - Section 11 = 400, Section 12 = P → weight = "400", weightUnit = "P"
+   - Section 11 = 200, Section 12 = K → weight = "200", weightUnit = "K"
+   - Section 11 = 2,  Section 12 = T → weight = "2",   weightUnit = "T"  ← return "2" not "4000"
    - Section 11 = 55, Section 12 = G → weight = null (volume, not weight)
+
+   ⚠ IMPORTANT: Section 11 and Section 12 contain the WEIGHT ONLY. Do NOT use the numbers from Section 11/12 for anything related to container size. Container size comes exclusively from Section 14.
 
 ---
 
@@ -74,12 +78,14 @@ STEP 2 — READ SECTION 14 (Special Handling Instructions and Additional Informa
 Clean Harbors uses a specific format in Section 14. Each material has one line:
   [row#].[internal code]  ERG#[xxx]  [qty]x[size_or_code]
 
+⚠ IMPORTANT: Section 14 contains CONTAINER SIZE ONLY. Do NOT use Section 14 numbers for weight. The numbers here (e.g. 55, 330) are gallon sizes of containers — they have nothing to do with the weight values in Section 11/12.
+
 Examples:
   1.RFD-32  ERG#131  1x55
   2.CHW-44  ERG#154  3x55
   3.RFD-12  ERG#128  1xTOTE
   4.CHW-01  ERG#171  2xFBIN
-  5.RFD-99  ERG#154  1x275
+  5.RFD-99  ERG#154  1x330
 
 Parsing rules for the [qty]x[size_or_code] part:
 - The number BEFORE the "x" is always the quantity (number of containers)
