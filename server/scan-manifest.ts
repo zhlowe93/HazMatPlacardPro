@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { validateScanResult, ValidatedMaterial } from "./validation";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -145,6 +146,78 @@ Respond ONLY with a raw JSON object in exactly this format. No markdown, no code
 
 If an unknown container code was used, include it in the notes field so the driver knows what to verify, e.g.: "notes": "Unrecognized container code 'XBIN' — verify container size (above or below 95 gal)"`;
 
+/**
+ * IMPROVEMENT 3: Second pass — focused re-scan of low-confidence fields
+ * Uses a narrower prompt targeting only the fields that failed validation
+ */
+async function runSecondPass(imageBase64: string, mimeType: string, lowConfItems: ValidatedMaterial[]): Promise<any[] | null> {
+  const fieldsList = lowConfItems.map((item, i) => {
+    const issues = item.validationIssues.map(v => `${v.field}: ${v.message}`).join(", ");
+    return `Material ${i + 1} (${item.materialName || "unknown"}): Issues — ${issues}`;
+  }).join("\n");
+
+  const secondPassPrompt = `You are re-scanning a hazardous waste manifest because the first scan had low-confidence results on some fields.
+
+FOCUS ONLY on these specific issues:
+${fieldsList}
+
+Look VERY carefully at the document image. For each issue listed above, try to read the field again with extra attention to:
+- Handwritten characters that might be ambiguous (0 vs O, 1 vs I vs L, D vs O)
+- Smudged or faded text
+- Fields that might be in a different location than expected
+
+Return ONLY a JSON array with corrected values for each material listed above, in the same format as the original scan:
+[
+  {
+    "unNumber": "...",
+    "materialName": "...",
+    "hazardClass": "...",
+    "subsidiaryClass": null,
+    "packingGroup": "...",
+    "weight": "...",
+    "weightUnit": "...",
+    "quantity": 1,
+    "containerType": "bulk" or "non-bulk",
+    "confidence": "high" or "medium" or "low",
+    "notes": "Second pass: ..."
+  }
+]
+
+If you still can't read a field clearly, keep confidence as "low". Only upgrade confidence if you're now sure of the value.
+Respond with ONLY the JSON array. No markdown, no explanation.`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: secondPassPrompt },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:${mimeType};base64,${imageBase64}`,
+                detail: "high",
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 2048,
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) return null;
+
+    const cleaned = content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    return JSON.parse(cleaned);
+  } catch (e) {
+    console.error("scan-manifest: second pass API error:", e);
+    return null;
+  }
+}
+
 export async function scanManifest(imageBase64: string, mimeType: string = "image/jpeg"): Promise<ScanResult> {
   try {
     const response = await openai.chat.completions.create({
@@ -197,9 +270,36 @@ export async function scanManifest(imageBase64: string, mimeType: string = "imag
       };
     }
 
+    // IMPROVEMENT 2: Run constrained validation on all extracted materials
+    const validatedMaterials = validateScanResult(parsed.materials || []);
+
+    // IMPROVEMENT 3: Identify low-confidence fields for second pass
+    const lowConfidenceItems = validatedMaterials.filter(m => m.confidence === "low");
+    
+    if (lowConfidenceItems.length > 0 && parsed.materials.length > 0) {
+      // Run a focused second pass on low-confidence items
+      try {
+        const secondPassResult = await runSecondPass(imageBase64, mimeType, lowConfidenceItems);
+        if (secondPassResult) {
+          // Merge second pass results back into validated materials
+          for (let i = 0; i < validatedMaterials.length; i++) {
+            if (validatedMaterials[i].confidence === "low" && secondPassResult[i]) {
+              const revalidated = validateScanResult([secondPassResult[i]])[0];
+              if (revalidated.confidence !== "low") {
+                validatedMaterials[i] = revalidated;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        // Second pass failed — continue with first pass results
+        console.error("scan-manifest: second pass failed, using first pass results", e);
+      }
+    }
+
     return {
       success: true,
-      materials: parsed.materials || [],
+      materials: validatedMaterials,
       rawText: parsed.rawText || "",
       documentType: parsed.documentType || "Unknown",
     };
