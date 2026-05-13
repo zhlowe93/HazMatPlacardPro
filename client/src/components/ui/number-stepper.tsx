@@ -76,6 +76,7 @@ export function NumberStepper({
       <Input
         id={id}
         type="number"
+        inputMode={integer ? "numeric" : "decimal"}
         value={value}
         onChange={handleInputChange}
         min={min}

@@ -7,53 +7,60 @@ import ReferenceGuide from "@/components/ReferenceGuide";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
 import QuickCheckSummary from "@/components/QuickCheckSummary";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, WifiOff } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
-
-interface Material {
-  id: string;
-  unNumber: string;
-  materialName: string;
-  hazardClass: string;
-  subsidiaryClass?: string;
-  packingGroup: string;
-  weight: string;
-  quantity: number;
-  containerType: "bulk" | "non-bulk";
-  stopNumber: number;
-  poisonInhalationHazard: boolean;
-}
+import { usePersistedMaterials } from "@/hooks/use-persisted-materials";
 
 export default function Home() {
   const { t } = useLanguage();
-  const [materials, setMaterials] = useState<Material[]>([]);
-  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const {
+    materials,
+    loaded,
+    addMaterial,
+    addMaterials,
+    updateMaterial,
+    removeMaterial,
+    clearAll,
+  } = usePersistedMaterials();
 
-  const handleAddMaterial = (material: Omit<Material, "id">) => {
-    const newMaterial: Material = {
-      ...material,
-      id: Date.now().toString(),
+  const [editingMaterial, setEditingMaterial] = useState<
+    (typeof materials)[number] | null
+  >(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  // Listen for online/offline events
+  useState(() => {
+    const goOffline = () => setIsOffline(true);
+    const goOnline = () => setIsOffline(false);
+    window.addEventListener("offline", goOffline);
+    window.addEventListener("online", goOnline);
+    return () => {
+      window.removeEventListener("offline", goOffline);
+      window.removeEventListener("online", goOnline);
     };
-    setMaterials((prev) => [...prev, newMaterial]);
+  });
+
+  const handleAddMaterial = (
+    material: Omit<(typeof materials)[number], "id">
+  ) => {
+    addMaterial(material);
   };
 
-  const handleAddMaterials = (materials: Omit<Material, "id">[]) => {
-    const newMaterials: Material[] = materials.map((m, i) => ({
-      ...m,
-      id: (Date.now() + i).toString(),
-    }));
-    setMaterials((prev) => [...prev, ...newMaterials]);
+  const handleAddMaterials = (
+    newMaterials: Omit<(typeof materials)[number], "id">[]
+  ) => {
+    addMaterials(newMaterials);
   };
 
-  const handleEditMaterial = (material: Material) => {
+  const handleEditMaterial = (material: (typeof materials)[number]) => {
     setEditingMaterial(material);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleUpdateMaterial = (updatedMaterial: Material) => {
-    setMaterials((prev) =>
-      prev.map((m) => (m.id === updatedMaterial.id ? updatedMaterial : m))
-    );
+  const handleUpdateMaterial = (
+    updatedMaterial: (typeof materials)[number]
+  ) => {
+    updateMaterial(updatedMaterial);
     setEditingMaterial(null);
   };
 
@@ -62,16 +69,27 @@ export default function Home() {
   };
 
   const handleRemoveMaterial = (id: string) => {
-    setMaterials((prev) => prev.filter((m) => m.id !== id));
+    removeMaterial(id);
     if (editingMaterial?.id === id) {
       setEditingMaterial(null);
     }
   };
 
   const handleClearAll = () => {
-    setMaterials([]);
+    clearAll();
     setEditingMaterial(null);
   };
+
+  if (!loaded) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-2">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -82,6 +100,12 @@ export default function Home() {
             <h1 className="text-lg font-bold" data-testid="text-app-title">
               {t("app.title")}
             </h1>
+            {isOffline && (
+              <span className="flex items-center gap-1 text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded">
+                <WifiOff className="w-3 h-3" />
+                Offline
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1">
             <LanguageToggle />
@@ -93,20 +117,34 @@ export default function Home() {
       <main className="container mx-auto px-4 py-6 max-w-4xl pb-24">
         <Tabs defaultValue="materials" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 h-16 sticky top-16 z-40 bg-muted shadow-sm">
-            <TabsTrigger value="materials" data-testid="tab-materials" className="text-lg py-4">
+            <TabsTrigger
+              value="materials"
+              data-testid="tab-materials"
+              className="text-lg py-4"
+            >
               {t("tabs.materials")}
             </TabsTrigger>
-            <TabsTrigger value="placards" data-testid="tab-placards" className="text-lg py-4">
+            <TabsTrigger
+              value="placards"
+              data-testid="tab-placards"
+              className="text-lg py-4"
+            >
               {t("tabs.placards")}
             </TabsTrigger>
-            <TabsTrigger value="reference" data-testid="tab-reference" className="text-lg py-4">
+            <TabsTrigger
+              value="reference"
+              data-testid="tab-reference"
+              className="text-lg py-4"
+            >
               {t("tabs.reference")}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="materials" className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-2">{t("materials.add.title")}</h2>
+              <h2 className="text-xl font-semibold mb-2">
+                {t("materials.add.title")}
+              </h2>
               <p className="text-sm text-muted-foreground mb-4">
                 {t("materials.add.description")}
               </p>
@@ -120,12 +158,14 @@ export default function Home() {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold mb-2">{t("materials.current.title")}</h2>
+              <h2 className="text-xl font-semibold mb-2">
+                {t("materials.current.title")}
+              </h2>
               <p className="text-sm text-muted-foreground mb-4">
                 {t("materials.current.description")}
               </p>
-              <MaterialList 
-                materials={materials} 
+              <MaterialList
+                materials={materials}
                 onRemoveMaterial={handleRemoveMaterial}
                 onEditMaterial={handleEditMaterial}
                 onClearAll={handleClearAll}
@@ -136,7 +176,9 @@ export default function Home() {
           <TabsContent value="placards" className="space-y-6">
             <div>
               <QuickCheckSummary materials={materials} />
-              <h2 className="text-xl font-semibold mb-2">{t("placards.title")}</h2>
+              <h2 className="text-xl font-semibold mb-2">
+                {t("placards.title")}
+              </h2>
               <p className="text-sm text-muted-foreground mb-4">
                 {t("placards.description")}
               </p>

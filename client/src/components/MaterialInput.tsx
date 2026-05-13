@@ -29,6 +29,9 @@ interface Material {
   containerType: "bulk" | "non-bulk";
   stopNumber: number;
   poisonInhalationHazard: boolean;
+  isOrganicPeroxideTypeB?: boolean;
+  isRadioactiveYellowIII?: boolean;
+  isResidue?: boolean;
 }
 
 type NewMaterial = Omit<Material, "id">;
@@ -43,6 +46,41 @@ interface MaterialInputProps {
 
 const hazardClasses = getHazardClassOptions();
 
+/**
+ * Conservative lbs-per-gallon estimates by hazard class.
+ * Used when drivers enter volume (gallons) from their manifest instead of weight.
+ * We use HIGHER estimates to be safe — better to over-placard than under-placard.
+ */
+const LBS_PER_GALLON: Record<string, { factor: number; label: string }> = {
+  "1.1": { factor: 8.5, label: "explosives" },
+  "1.2": { factor: 8.5, label: "explosives" },
+  "1.3": { factor: 8.5, label: "explosives" },
+  "1.4": { factor: 8.5, label: "explosives" },
+  "1.5": { factor: 8.5, label: "explosives" },
+  "1.6": { factor: 8.5, label: "explosives" },
+  "2.1": { factor: 4.2, label: "flammable gas (liquefied)" },
+  "2.2": { factor: 8.3, label: "compressed gas" },
+  "2.3": { factor: 8.3, label: "poison gas" },
+  "3":   { factor: 7.5, label: "flammable liquid" },
+  "4.1": { factor: 10.0, label: "flammable solid (slurry)" },
+  "4.2": { factor: 9.0, label: "spontaneously combustible" },
+  "4.3": { factor: 9.0, label: "dangerous when wet" },
+  "5.1": { factor: 10.0, label: "oxidizer solution" },
+  "5.2": { factor: 9.0, label: "organic peroxide" },
+  "6.1": { factor: 9.0, label: "toxic liquid" },
+  "7":   { factor: 9.0, label: "radioactive" },
+  "8":   { factor: 12.0, label: "corrosive (acid/base)" },
+  "9":   { factor: 8.5, label: "misc. hazmat" },
+};
+
+const DEFAULT_LBS_PER_GALLON = 8.5; // Water is 8.34 — round up for safety
+
+function estimatePounds(gallons: number, hazardClass: string): number {
+  const entry = LBS_PER_GALLON[hazardClass];
+  const factor = entry?.factor || DEFAULT_LBS_PER_GALLON;
+  return Math.ceil(gallons * factor);
+}
+
 const packingGroups = [
   { value: "I", label: "Packing Group I - High Danger" },
   { value: "II", label: "Packing Group II - Medium Danger" },
@@ -51,8 +89,8 @@ const packingGroups = [
 ];
 
 const containerTypes = [
-  { value: "non-bulk", label: "95 Gallons or Below" },
-  { value: "bulk", label: "Above 95 Gallons" },
+  { value: "non-bulk", label: "Non-Bulk (≤119 gal, ≤882 lbs, ≤119 cu ft)" },
+  { value: "bulk", label: "Bulk (exceeds 119 gal, 882 lbs, or 119 cu ft)" },
 ];
 
 export default function MaterialInput({
@@ -70,9 +108,13 @@ export default function MaterialInput({
   const [containerType, setContainerType] = useState<"bulk" | "non-bulk">("non-bulk");
   const [stopNumber, setStopNumber] = useState(1);
   const [weight, setWeight] = useState("0");
+  const [weightUnit, setWeightUnit] = useState<"lbs" | "gal">("lbs");
   const [quantity, setQuantity] = useState(1);
   const [subsidiaryClass, setSubsidiaryClass] = useState("none");
   const [poisonInhalationHazard, setPoisonInhalationHazard] = useState(false);
+  const [isOrganicPeroxideTypeB, setIsOrganicPeroxideTypeB] = useState(false);
+  const [isRadioactiveYellowIII, setIsRadioactiveYellowIII] = useState(false);
+  const [isResidue, setIsResidue] = useState(false);
 
   const triggerHapticFeedback = () => {
     if (navigator.vibrate) {
@@ -81,12 +123,26 @@ export default function MaterialInput({
   };
 
   const showPihOption = hazardClass === "6.1" && packingGroup === "I";
+  const showOrganicPeroxideTypeB = hazardClass === "5.2";
+  const showRadioactiveYellowIII = hazardClass === "7";
 
   useEffect(() => {
     if (!showPihOption) {
       setPoisonInhalationHazard(false);
     }
   }, [showPihOption]);
+
+  useEffect(() => {
+    if (!showOrganicPeroxideTypeB) {
+      setIsOrganicPeroxideTypeB(false);
+    }
+  }, [showOrganicPeroxideTypeB]);
+
+  useEffect(() => {
+    if (!showRadioactiveYellowIII) {
+      setIsRadioactiveYellowIII(false);
+    }
+  }, [showRadioactiveYellowIII]);
 
   useEffect(() => {
     if (editingMaterial) {
@@ -100,6 +156,9 @@ export default function MaterialInput({
       setWeight(editingMaterial.weight);
       setQuantity(editingMaterial.quantity);
       setPoisonInhalationHazard(editingMaterial.poisonInhalationHazard || false);
+      setIsOrganicPeroxideTypeB(editingMaterial.isOrganicPeroxideTypeB || false);
+      setIsRadioactiveYellowIII(editingMaterial.isRadioactiveYellowIII || false);
+      setIsResidue(editingMaterial.isResidue || false);
     }
   }, [editingMaterial]);
 
@@ -112,14 +171,22 @@ export default function MaterialInput({
     setContainerType("non-bulk");
     setStopNumber(1);
     setWeight("0");
+    setWeightUnit("lbs");
     setQuantity(1);
     setPoisonInhalationHazard(false);
+    setIsOrganicPeroxideTypeB(false);
+    setIsRadioactiveYellowIII(false);
+    setIsResidue(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const weightNum = parseFloat(weight);
-    if (unNumber && materialName && hazardClass && packingGroup && !isNaN(weightNum) && weightNum > 0) {
+    const rawWeightNum = parseFloat(weight);
+    if (unNumber && materialName && hazardClass && packingGroup && !isNaN(rawWeightNum) && rawWeightNum > 0) {
+      // Convert gallons to estimated pounds if unit is gallons
+      const weightInLbs = weightUnit === "gal"
+        ? estimatePounds(rawWeightNum, hazardClass).toString()
+        : weight;
       const isEditing = editingMaterial && onUpdateMaterial;
 
       if (isEditing) {
@@ -132,9 +199,12 @@ export default function MaterialInput({
           packingGroup,
           containerType,
           stopNumber,
-          weight,
+          weight: weightInLbs,
           quantity,
           poisonInhalationHazard,
+          isOrganicPeroxideTypeB,
+          isRadioactiveYellowIII,
+          isResidue,
         });
       } else {
         onAddMaterial({
@@ -145,18 +215,25 @@ export default function MaterialInput({
           packingGroup,
           containerType,
           stopNumber,
-          weight,
+          weight: weightInLbs,
           quantity,
           poisonInhalationHazard,
+          isOrganicPeroxideTypeB,
+          isRadioactiveYellowIII,
+          isResidue,
         });
       }
 
       triggerHapticFeedback();
 
+      const displayWeight = parseFloat(weightInLbs);
+      const conversionNote = weightUnit === "gal"
+        ? ` (estimated from ${rawWeightNum} gal)`
+        : "";
       toast({
         title: isEditing ? "Material Updated" : "Material Added",
-        description: `${unNumber} - ${materialName} (${weightNum.toLocaleString()} lbs)`,
-        duration: 2000,
+        description: `${unNumber} - ${materialName} (${displayWeight.toLocaleString()} lbs${conversionNote})`,
+        duration: 3000,
       });
 
       resetForm();
@@ -236,6 +313,7 @@ export default function MaterialInput({
               placeholder="e.g., UN1203"
               value={unNumber}
               onChange={(e) => setUnNumber(e.target.value)}
+              autoComplete="off"
               className="h-16 text-lg"
             />
           </div>
@@ -250,6 +328,7 @@ export default function MaterialInput({
               placeholder="e.g., Gasoline"
               value={materialName}
               onChange={(e) => setMaterialName(e.target.value)}
+              autoComplete="off"
               className="h-16 text-lg"
             />
           </div>
@@ -299,7 +378,7 @@ export default function MaterialInput({
                   ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Check shipping papers for a class in parentheses, e.g., <strong>6.1 (4.3)</strong>. Classes 4.3 and 2.3 as secondary require placards at <strong>any quantity</strong> per 49 CFR §172.505.
             </p>
           </div>
@@ -346,7 +425,7 @@ export default function MaterialInput({
                       Poison Inhalation Hazard (PIH)
                     </Label>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Check this if the material is a <strong>Zone A or Zone B</strong> inhalation hazard.
                     PIH materials are <strong>Table 1</strong> and require placarding at <strong>any quantity</strong>.
                   </p>
@@ -354,6 +433,84 @@ export default function MaterialInput({
               </div>
             </div>
           )}
+
+          {showOrganicPeroxideTypeB && (
+            <div className="p-4 border-2 border-orange-500/50 bg-orange-500/10 rounded-lg space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id="organic-peroxide-type-b"
+                      data-testid="checkbox-organic-peroxide-type-b"
+                      checked={isOrganicPeroxideTypeB}
+                      onCheckedChange={(checked) => setIsOrganicPeroxideTypeB(checked === true)}
+                      className="h-8 w-8"
+                    />
+                    <Label
+                      htmlFor="organic-peroxide-type-b"
+                      className="text-base font-semibold text-orange-700 dark:text-orange-400 cursor-pointer"
+                    >
+                      Type B Organic Peroxide
+                    </Label>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Check if this is a <strong>Type B</strong> organic peroxide. Type B is <strong>Table 1</strong> — placard required at <strong>any quantity</strong> per 49 CFR §172.504.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showRadioactiveYellowIII && (
+            <div className="p-4 border-2 border-yellow-500/50 bg-yellow-500/10 rounded-lg space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id="radioactive-yellow-iii"
+                      data-testid="checkbox-radioactive-yellow-iii"
+                      checked={isRadioactiveYellowIII}
+                      onCheckedChange={(checked) => setIsRadioactiveYellowIII(checked === true)}
+                      className="h-8 w-8"
+                    />
+                    <Label
+                      htmlFor="radioactive-yellow-iii"
+                      className="text-base font-semibold text-yellow-700 dark:text-yellow-400 cursor-pointer"
+                    >
+                      Radioactive Yellow III Label
+                    </Label>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Check if the package has a <strong>Radioactive Yellow III</strong> label. Yellow III is <strong>Table 1</strong> — placard required at <strong>any quantity</strong> per 49 CFR §172.504.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Residue / Empty Container */}
+          <div className="p-4 border rounded-lg space-y-3">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="is-residue"
+                data-testid="checkbox-residue"
+                checked={isResidue}
+                onCheckedChange={(checked) => setIsResidue(checked === true)}
+                className="h-8 w-8"
+              />
+              <Label
+                htmlFor="is-residue"
+                className="text-base font-medium cursor-pointer"
+              >
+                Residue / Empty Container
+              </Label>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Check if this is a container with <strong>residue only</strong> (non-cleaned, non-purged). Per 49 CFR §172.514: Table 1 residue still requires placards. Table 2 residue does <strong>not</strong> require placards unless in a bulk container.
+            </p>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="container-type" className="text-base font-medium">
@@ -375,8 +532,8 @@ export default function MaterialInput({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
-              Select your container size. Containers above 95 gallons are considered bulk and require placards for Table 2 materials <em>regardless of weight</em>.
+            <p className="text-sm text-muted-foreground">
+              Per 49 CFR §171.8: <strong>Bulk</strong> = exceeds <strong>119 gallons</strong>, <strong>882 lbs</strong>, or <strong>119 cubic feet</strong> (any one). Bulk containers require placards regardless of weight.
             </p>
           </div>
 
@@ -393,7 +550,7 @@ export default function MaterialInput({
               step={1}
               integer={true}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Track which pickup location this material came from. DOT requires specific placards for classes exceeding 2,205 lbs <strong>at a single loading facility</strong>.
             </p>
           </div>
@@ -401,24 +558,74 @@ export default function MaterialInput({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="weight" className="text-base font-medium">
-                Total Weight (lbs)
+                Total {weightUnit === "gal" ? "Volume" : "Weight"}
               </Label>
+
+              {/* Unit toggle — lbs vs gallons */}
+              <div className="flex rounded-lg border-2 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setWeightUnit("lbs")}
+                  className={`flex-1 py-3 text-base font-medium transition-colors ${
+                    weightUnit === "lbs"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  Pounds (lbs)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWeightUnit("gal")}
+                  className={`flex-1 py-3 text-base font-medium transition-colors ${
+                    weightUnit === "gal"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  Gallons (gal)
+                </button>
+              </div>
+
               <NumberStepper
                 id="weight"
                 data-testid="input-weight"
                 value={weight}
                 onChange={(val) => setWeight(val.toString())}
                 min={0}
-                step={10}
-                placeholder="1000"
+                step={weightUnit === "gal" ? 5 : 10}
+                placeholder={weightUnit === "gal" ? "55" : "1000"}
               />
-              <p className="text-xs text-muted-foreground">
-                Combined weight of all containers for this material.
-              </p>
-              {parseFloat(weight) > 10000 && (
+
+              {/* Live conversion preview when in gallons mode */}
+              {weightUnit === "gal" && parseFloat(weight) > 0 && hazardClass && (
+                <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                    ≈ {estimatePounds(parseFloat(weight), hazardClass).toLocaleString()} lbs estimated
+                  </p>
+                  <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">
+                    Based on ~{LBS_PER_GALLON[hazardClass]?.factor || DEFAULT_LBS_PER_GALLON} lbs/gal for {LBS_PER_GALLON[hazardClass]?.label || "hazmat liquid"}.
+                    Rounded up for safety. DOT thresholds use weight.
+                  </p>
+                </div>
+              )}
+
+              {weightUnit === "gal" && !hazardClass && parseFloat(weight) > 0 && (
+                <p className="text-sm text-amber-600 dark:text-amber-400">
+                  Select a hazard class above for weight estimate.
+                </p>
+              )}
+
+              {weightUnit === "lbs" && (
+                <p className="text-sm text-muted-foreground">
+                  Combined weight of all containers for this material.
+                </p>
+              )}
+
+              {parseFloat(weight) > 10000 && weightUnit === "lbs" && (
                 <div className="flex items-center gap-2 p-2 mt-2 rounded bg-orange-500/20 border border-orange-500/40" data-testid="warning-high-weight">
                   <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
-                  <span className="text-xs text-orange-700 dark:text-orange-300">
+                  <span className="text-sm text-orange-700 dark:text-orange-300">
                     Unusually high weight ({parseFloat(weight).toLocaleString()} lbs). Please verify this is correct.
                   </span>
                 </div>
@@ -438,7 +645,7 @@ export default function MaterialInput({
                 step={1}
                 integer={true}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Number of containers (for your reference).
               </p>
             </div>

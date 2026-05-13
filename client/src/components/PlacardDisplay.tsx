@@ -1,30 +1,15 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  AlertCircle, 
-  CheckCircle2, 
-  XCircle,
-  Flame, 
-  Skull, 
-  Droplet,
-  Zap,
-  CircleDot,
-  Cylinder,
-  RadiationIcon
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { getPlacardColor, isTable1Material, getHazardClassInfo } from "@/lib/hazmat-data";
+import DOTPlacard from "./DOTPlacard";
+import DangerousPlacard from "./DangerousPlacard";
 
-// Diamond-shaped DOT placard component
-interface DiamondPlacardProps {
-  hazardClass: string;
-  className?: string;
-  size?: "sm" | "md" | "lg";
-  unNumber?: string; // UN identification number for this bulk container (49 CFR 172.336)
-  isPih?: boolean; // Show "INHALATION HAZARD" for Class 6.1 PIH materials
-}
+// Placard size in pixels
+const PLACARD_SIZES = { sm: 112, md: 144, lg: 192 };
 
-// Get the appropriate hazard symbol icon for each class
-const getHazardIcon = (hazardClass: string) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _REMOVED_getHazardIcon = (hazardClass: string) => {
   const classNum = parseFloat(hazardClass);
   
   // Class 1 - Explosives (bomb/explosion)
@@ -108,7 +93,7 @@ const DiamondPlacard = ({ hazardClass, className = "", size = "md", unNumber, is
   // Size variants matching DOT specs (250mm = ~10 inches minimum)
   const sizeClasses = {
     sm: "w-28 h-28",
-    md: "w-40 h-40",
+    md: "w-36 h-36 sm:w-40 sm:h-40",
     lg: "w-48 h-48"
   };
   
@@ -199,6 +184,9 @@ interface Material {
   containerType: "bulk" | "non-bulk";
   stopNumber: number;
   poisonInhalationHazard: boolean;
+  isOrganicPeroxideTypeB?: boolean;
+  isRadioactiveYellowIII?: boolean;
+  isResidue?: boolean;
 }
 
 interface PlacardDisplayProps {
@@ -354,18 +342,44 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
   // Track unique (class, UN) combinations for bulk containers
   const bulkEntries = new Map<string, { class: string; un: string; weight: number; isTable1: boolean; isPih: boolean }>();
   
-  // Track non-bulk totals per class and whether any has PIH
-  const nonBulkClassTotals = new Map<string, { weight: number; hasPih: boolean }>();
+  // Track non-bulk totals per class and special designations
+  const nonBulkClassTotals = new Map<string, { weight: number; hasPih: boolean; hasTypeB: boolean; hasYellowIII: boolean; hasResidueExemption: boolean }>();
   
   // Calculate aggregate weight of ALL Table 2 non-bulk materials
   let table2NonBulkAggregateWeight = 0;
   
   materials.forEach((material) => {
-    // PIH materials are Table 1 regardless of their base hazard class
+    // Determine Table 1 status:
+    // - Base class Table 1 (1.1-1.3, 2.3, 4.3)
+    // - PIH designation (Class 6.1 PG I inhalation)
+    // - Class 5.2 Type B Organic Peroxide
+    // - Class 7 with Radioactive Yellow III label
     const isTable1ByClass = isTable1Material(material.hazardClass);
     const isPih = material.poisonInhalationHazard === true;
-    const isTable1 = isTable1ByClass || isPih;
-    const materialWeight = parseFloat(material.weight); // Weight is already total for all containers
+    const isTypeB = material.isOrganicPeroxideTypeB === true && material.hazardClass === "5.2";
+    const isYellowIII = material.isRadioactiveYellowIII === true && material.hazardClass === "7";
+    const isTable1 = isTable1ByClass || isPih || isTypeB || isYellowIII;
+    const materialWeight = parseFloat(material.weight);
+
+    // Residue logic per 49 CFR §172.514:
+    // - Table 1 residue: still requires placard (with any quantity)
+    // - Table 2 residue in non-bulk: does NOT require placard (skip from aggregate)
+    // - Table 2 residue in bulk: still requires placard
+    const isResidueNonBulkTable2 = material.isResidue === true
+      && !isTable1
+      && material.containerType !== "bulk";
+
+    if (isResidueNonBulkTable2) {
+      // Table 2 residue in non-bulk containers — exempt from placarding
+      // Still show it but mark as not required with explanatory reason
+      const existing = nonBulkClassTotals.get(material.hazardClass) || { weight: 0, hasPih: false, hasTypeB: false, hasYellowIII: false, hasResidueExemption: false };
+      nonBulkClassTotals.set(material.hazardClass, {
+        ...existing,
+        weight: existing.weight + materialWeight,
+        hasResidueExemption: true,
+      });
+      return; // Don't add to Table 2 aggregate
+    }
     
     if (material.containerType === "bulk") {
       // Per 49 CFR 172.336: Each bulk container needs its own placard entry with UN number
@@ -388,10 +402,13 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
       }
     } else {
       // Non-bulk: aggregate by class
-      const current = nonBulkClassTotals.get(material.hazardClass) || { weight: 0, hasPih: false };
-      nonBulkClassTotals.set(material.hazardClass, { 
-        weight: current.weight + materialWeight, 
-        hasPih: current.hasPih || isPih 
+      const current = nonBulkClassTotals.get(material.hazardClass) || { weight: 0, hasPih: false, hasTypeB: false, hasYellowIII: false, hasResidueExemption: false };
+      nonBulkClassTotals.set(material.hazardClass, {
+        weight: current.weight + materialWeight,
+        hasPih: current.hasPih || isPih,
+        hasTypeB: current.hasTypeB || isTypeB,
+        hasYellowIII: current.hasYellowIII || isYellowIII,
+        hasResidueExemption: current.hasResidueExemption,
       });
       
       // Add to Table 2 aggregate if applicable (PIH materials are Table 1, so excluded)
@@ -412,7 +429,7 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
     } else if (entry.isTable1) {
       reason = `Table 1 material in bulk container - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`;
     } else {
-      reason = `Container above 95 gallons (Table 2) - placard required at any quantity (${entry.weight.toFixed(0)} lbs)`;
+      reason = `Bulk container (exceeds 119 gal/882 lbs/119 cu ft) - placard required at any quantity per 49 CFR §172.504(f) (${entry.weight.toFixed(0)} lbs)`;
     }
     
     requirements.push({
@@ -432,19 +449,45 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
   
   // Create placard entries for non-bulk classes
   nonBulkClassTotals.forEach((data, hazardClass) => {
-    const { weight, hasPih } = data;
-    // Class is Table 1 if it's a Table 1 class OR if it has PIH designation
+    const { weight, hasPih, hasTypeB, hasYellowIII, hasResidueExemption } = data;
+    // Class is Table 1 if it's a Table 1 class, has PIH, is Type B peroxide, or Yellow III radioactive
     const isTable1ByClass = isTable1Material(hazardClass);
-    const isTable1 = isTable1ByClass || hasPih;
-    
+    const isTable1 = isTable1ByClass || hasPih || hasTypeB || hasYellowIII;
+
+    // Residue exemption: Table 2 non-bulk residue does not require placard
+    if (hasResidueExemption && !isTable1) {
+      requirements.push({
+        hazardClass,
+        label: `Class ${hazardClass} (Residue)`,
+        required: false,
+        reason: `Table 2 residue in non-bulk container — exempt from placarding per 49 CFR §172.514 (${weight.toFixed(0)} lbs)`,
+        color: getPlacardColor(hazardClass),
+        isTable1: false,
+        isBulk: false,
+        weight,
+        unNumber: undefined,
+        key: `nonbulk-${hazardClass}`,
+        isPih: false,
+      });
+      return;
+    }
+
     // Placard required if:
-    // 1. Table 1 material or PIH (always required at any quantity), OR
+    // 1. Table 1 material, PIH, Type B, or Yellow III (always required at any quantity), OR
     // 2. Table 2 non-bulk AND aggregate of all Table 2 non-bulk >= 1,001 lbs
     const required = isTable1 || (!isTable1 && table2AggregateExceedsThreshold);
-    
+
     let reason = "";
+    let label = `Class ${hazardClass}`;
     if (hasPih) {
       reason = `Poison Inhalation Hazard (Table 1) - placard required at any quantity (${weight.toFixed(0)} lbs)`;
+      label = `Class ${hazardClass} (PIH)`;
+    } else if (hasTypeB) {
+      reason = `Type B Organic Peroxide (Table 1) - placard required at any quantity per 49 CFR §172.504 (${weight.toFixed(0)} lbs)`;
+      label = `Class ${hazardClass} (Type B)`;
+    } else if (hasYellowIII) {
+      reason = `Radioactive Yellow III (Table 1) - placard required at any quantity per 49 CFR §172.504 (${weight.toFixed(0)} lbs)`;
+      label = `Class ${hazardClass} (Yellow III)`;
     } else if (isTable1ByClass) {
       reason = `Table 1 material - placard required at any quantity (${weight.toFixed(0)} lbs)`;
     } else if (required) {
@@ -452,17 +495,17 @@ const calculatePlacardRequirements = (materials: Material[]): PlacardRequirement
     } else {
       reason = `Aggregate of all Table 2 materials (${table2NonBulkAggregateWeight.toFixed(0)} lbs) below ${table2Threshold} lbs threshold (this class: ${weight.toFixed(0)} lbs)`;
     }
-    
+
     requirements.push({
       hazardClass,
-      label: hasPih ? `Class ${hazardClass} (PIH)` : `Class ${hazardClass}`,
+      label,
       required,
       reason,
       color: getPlacardColor(hazardClass),
       isTable1,
       isBulk: false,
       weight,
-      unNumber: undefined, // No UN number for non-bulk aggregate placards
+      unNumber: undefined,
       key: `nonbulk-${hazardClass}`,
       isPih: hasPih,
     });
@@ -587,31 +630,9 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-3">
-              {/* DANGEROUS placard as diamond - CFR 172.521 spec */}
+              {/* DANGEROUS placard - CFR 172.521 spec */}
               <div className="flex justify-center bg-background p-2 rounded-md">
-                <div className="w-40 h-40 relative">
-                  <div className="w-full h-full relative bg-background overflow-hidden">
-                    {/* Outer border */}
-                    <div className="absolute inset-0 rotate-45 border-[5px] border-black z-10">
-                      {/* Red/white striped background per CFR spec */}
-                      <div className="absolute inset-0 bg-white">
-                        {/* Top triangle (red) */}
-                        <div className="absolute inset-0 bg-red-500" style={{ clipPath: 'polygon(50% 0%, 0% 50%, 100% 50%)' }} />
-                        {/* Bottom triangle (red) */}
-                        <div className="absolute inset-0 bg-red-500" style={{ clipPath: 'polygon(0% 50%, 100% 50%, 50% 100%)' }} />
-                      </div>
-                      {/* Inner border */}
-                      <div className="absolute inset-[8%] border-2 border-black">
-                        {/* Content */}
-                        <div className="-rotate-45 flex items-center justify-center h-full w-full">
-                          <div className="text-sm font-black text-black text-center leading-tight">
-                            DANGEROUS
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <DangerousPlacard size={PLACARD_SIZES.md} />
               </div>
               <div className="text-center">
                 <Badge variant="outline" className="text-xs border-amber-600 text-amber-900 dark:text-amber-100">
@@ -652,7 +673,7 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8">
             {requiredPlacards.map((req) => (
               <div
                 key={req.key}
@@ -660,9 +681,9 @@ export default function PlacardDisplay({ materials }: PlacardDisplayProps) {
                 data-testid={`placard-required-${req.hazardClass}${req.unNumber ? `-${req.unNumber}` : ''}`}
               >
                 <div className="flex justify-center bg-background p-2 rounded-md overflow-hidden">
-                  <DiamondPlacard 
-                    hazardClass={req.hazardClass} 
-                    size="md"
+                  <DOTPlacard
+                    hazardClass={req.hazardClass}
+                    size={PLACARD_SIZES.md}
                     unNumber={req.unNumber}
                     isPih={req.isPih}
                   />

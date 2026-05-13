@@ -2,7 +2,10 @@
  * Constrained Validation Layer
  * Validates GPT-4o scan results against known DOT/EPA code tables.
  * Catches OCR misreads before the driver sees them.
+ * Cross-references UN numbers against known hazmat materials.
  */
+
+import { crossReferenceUN } from "./un-lookup";
 
 // Valid DOT hazard classes
 const VALID_HAZARD_CLASSES = [
@@ -211,13 +214,48 @@ export function validateMaterial(material: any): ValidatedMaterial {
   if (hasInvalid || hasMissing) confidence = "low";
   else if (hasCorrected) confidence = confidence === "high" ? "medium" : confidence;
   
+  // Cross-reference UN number against known materials database
+  const correctedUN = unCheck.corrected || material.unNumber;
+  const correctedClass = classCheck.corrected || material.hazardClass;
+  const correctedPG = pgCheck.corrected || material.packingGroup;
+
+  const unRef = crossReferenceUN(correctedUN, correctedClass, correctedPG);
+
+  // Auto-fill missing fields from UN lookup
+  let finalClass = correctedClass;
+  let finalPG = correctedPG;
+  let finalSubsidiary = subClassCheck.corrected || material.subsidiaryClass;
+  let finalName = material.materialName;
+
+  if (unRef.knownEntry) {
+    if (!finalClass && unRef.autoFills.hazardClass) {
+      finalClass = unRef.autoFills.hazardClass;
+      issues.push({ field: "hazardClass", original: "", corrected: finalClass, status: "corrected", message: `Auto-filled from UN lookup: ${finalClass}` });
+    }
+    if ((!finalPG || finalPG === "N/A") && unRef.autoFills.packingGroup) {
+      finalPG = unRef.autoFills.packingGroup;
+      issues.push({ field: "packingGroup", original: correctedPG || "", corrected: finalPG, status: "corrected", message: `Auto-filled from UN lookup: PG ${finalPG}` });
+    }
+    if (!finalSubsidiary && unRef.autoFills.subsidiaryClass) {
+      finalSubsidiary = unRef.autoFills.subsidiaryClass;
+    }
+    if (!finalName && unRef.autoFills.name) {
+      finalName = unRef.autoFills.name;
+    }
+    // Add cross-reference warnings
+    for (const issue of unRef.issues) {
+      issues.push({ field: "unNumber", original: correctedUN || "", corrected: null, status: "corrected", message: issue });
+      if (confidence === "high") confidence = "medium";
+    }
+  }
+
   // Build corrected material
   const validated: ValidatedMaterial = {
-    unNumber: unCheck.corrected || material.unNumber,
-    materialName: material.materialName,
-    hazardClass: classCheck.corrected || material.hazardClass,
-    subsidiaryClass: subClassCheck.corrected || material.subsidiaryClass,
-    packingGroup: pgCheck.corrected || material.packingGroup,
+    unNumber: correctedUN,
+    materialName: finalName,
+    hazardClass: finalClass,
+    subsidiaryClass: finalSubsidiary,
+    packingGroup: finalPG,
     weight: material.weight,
     weightUnit: unitCheck.corrected || material.weightUnit,
     quantity: material.quantity,

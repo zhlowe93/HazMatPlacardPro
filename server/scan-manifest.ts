@@ -1,10 +1,13 @@
 import OpenAI from "openai";
 import { validateScanResult, ValidatedMaterial } from "./validation";
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY || "";
+const openai = apiKey
+  ? new OpenAI({
+      apiKey,
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || undefined,
+    })
+  : null;
 
 export interface ExtractedMaterial {
   unNumber: string | null;
@@ -135,7 +138,7 @@ Respond ONLY with a raw JSON object in exactly this format. No markdown, no code
       "subsidiaryClass": null,
       "packingGroup": "II",
       "weight": "500",
-      "weightUnit": "lbs",
+      "weightUnit": "P",
       "quantity": 3,
       "containerType": "non-bulk",
       "confidence": "high",
@@ -151,6 +154,7 @@ If an unknown container code was used, include it in the notes field so the driv
  * Uses a narrower prompt targeting only the fields that failed validation
  */
 async function runSecondPass(imageBase64: string, mimeType: string, lowConfItems: ValidatedMaterial[]): Promise<any[] | null> {
+  if (!openai) return null;
   const fieldsList = lowConfItems.map((item, i) => {
     const issues = item.validationIssues.map(v => `${v.field}: ${v.message}`).join(", ");
     return `Material ${i + 1} (${item.materialName || "unknown"}): Issues — ${issues}`;
@@ -219,10 +223,24 @@ Respond with ONLY the JSON array. No markdown, no explanation.`;
 }
 
 export async function scanManifest(imageBase64: string, mimeType: string = "image/jpeg"): Promise<ScanResult> {
+  if (!openai) {
+    return {
+      success: false,
+      materials: [],
+      rawText: "",
+      documentType: "Unknown",
+      error: "AI scanning is not configured. Set OPENAI_API_KEY environment variable to enable manifest scanning.",
+    };
+  }
+
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
+        {
+          role: "system",
+          content: "You are a hazardous waste manifest reading expert. You extract structured data from DOT shipping documents with extreme accuracy. Always respond with raw JSON only — no markdown fences, no explanation text. When uncertain about a field, set confidence to 'low' rather than guessing.",
+        },
         {
           role: "user",
           content: [
@@ -241,6 +259,7 @@ export async function scanManifest(imageBase64: string, mimeType: string = "imag
         },
       ],
       max_tokens: 4096,
+      temperature: 0.1,  // Low temperature for more consistent/accurate extraction
     });
 
     const content = response.choices[0]?.message?.content;

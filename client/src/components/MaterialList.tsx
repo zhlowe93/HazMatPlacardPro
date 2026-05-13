@@ -6,6 +6,8 @@ import { Trash2, Pencil, AlertTriangle, X } from "lucide-react";
 import { getPlacardColor, isTable1Material } from "@/lib/hazmat-data";
 import { useLanguage } from "@/hooks/use-language";
 
+const haptic = () => navigator.vibrate?.([30]);
+
 interface Material {
   id: string;
   unNumber: string;
@@ -18,6 +20,9 @@ interface Material {
   containerType: "bulk" | "non-bulk";
   stopNumber: number;
   poisonInhalationHazard: boolean;
+  isOrganicPeroxideTypeB?: boolean;
+  isRadioactiveYellowIII?: boolean;
+  isResidue?: boolean;
 }
 
 interface MaterialListProps {
@@ -186,7 +191,7 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onEditMaterial(material)}
+                  onClick={() => { haptic(); onEditMaterial(material); }}
                   data-testid={`button-edit-${material.id}`}
                   className="h-16 w-16"
                 >
@@ -195,7 +200,7 @@ export default function MaterialList({ materials, onRemoveMaterial, onEditMateri
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onRemoveMaterial(material.id)}
+                  onClick={() => { haptic(); onRemoveMaterial(material.id); }}
                   data-testid={`button-remove-${material.id}`}
                   className="h-16 w-16 text-destructive border-destructive/20 hover:bg-destructive/10"
                 >

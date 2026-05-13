@@ -49,6 +49,14 @@
 
 ---
 
+## GITHUB CONTRIBUTION CONTEXT
+
+**Important Note:** The GitHub contribution graph shows low activity because the repo was developed primarily on Replit (October 2025 - March 2026) and was transferred to GitHub in late March 2026. The GitHub account shows activity starting from March 20, 2026.
+
+The actual work history is documented in the git commit log and in the Replit deployment history. When asked about GitHub contributions, reference the full git history which documents work from October 2025 to present.
+
+---
+
 ## COMMITS BY MONTH
 
 | Month | Commits | Key Work |

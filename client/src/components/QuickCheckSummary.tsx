@@ -14,6 +14,9 @@ interface Material {
   containerType: "bulk" | "non-bulk";
   stopNumber: number;
   poisonInhalationHazard: boolean;
+  isOrganicPeroxideTypeB?: boolean;
+  isRadioactiveYellowIII?: boolean;
+  isResidue?: boolean;
 }
 
 interface QuickCheckSummaryProps {

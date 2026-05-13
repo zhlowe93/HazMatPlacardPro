@@ -158,7 +158,7 @@ export const hazardClasses: HazardClassInfo[] = [
     placardColor: "Red/Yellow",
     symbol: "Flame over circle",
     table: "2",
-    tableNote: "Placard required above 1,001 lbs",
+    tableNote: "Table 2 (1,001 lbs) — but Type B is TABLE 1 (any quantity)",
   },
   {
     class: "6.1",
@@ -178,7 +178,7 @@ export const hazardClasses: HazardClassInfo[] = [
     placardColor: "Yellow/White",
     symbol: "Trefoil",
     table: "2",
-    tableNote: "Placard required above 1,001 lbs (Table 1 with Radioactive Yellow III label)",
+    tableNote: "Table 2 (1,001 lbs) — but Yellow III label is TABLE 1 (any quantity)",
   },
   {
     class: "8",

@@ -67,6 +67,11 @@ function normalizeMaterial(m: ExtractedMaterial, stopNumber: number) {
     }
   }
 
+  // Auto-detect special designations from material name
+  const matName = (m.materialName || "").toLowerCase();
+  const isPIH = hazardClass === "6.1" && packingGroup === "I" &&
+    (matName.includes("inhalation") || matName.includes("pih") || matName.includes("zone a") || matName.includes("zone b"));
+
   return {
     unNumber: m.unNumber || "",
     materialName: m.materialName || "",
@@ -77,7 +82,10 @@ function normalizeMaterial(m: ExtractedMaterial, stopNumber: number) {
     quantity: m.quantity || 1,
     containerType: m.containerType || "non-bulk",
     stopNumber,
-    poisonInhalationHazard: false,
+    poisonInhalationHazard: isPIH,
+    isOrganicPeroxideTypeB: false,
+    isRadioactiveYellowIII: false,
+    isResidue: false,
     _raw: m,
     _valid: !!(m.unNumber && m.materialName && hazardClass),
   };
@@ -114,10 +122,10 @@ function MaterialCard({
       data-testid={`scan-material-card-${index}`}
     >
       <div className="flex items-start gap-3">
-        <div className={`mt-1 w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center ${
+        <div className={`mt-1 w-7 h-7 rounded border-2 shrink-0 flex items-center justify-center ${
           selected ? "border-primary bg-primary" : "border-muted-foreground/40"
         }`}>
-          {selected && <CheckCircle2 className="w-3 h-3 text-primary-foreground" />}
+          {selected && <CheckCircle2 className="w-5 h-5 text-primary-foreground" />}
         </div>
 
         <div className="flex-1 space-y-1.5">
@@ -172,6 +180,14 @@ function MaterialCard({
  * Compresses, enhances contrast, and sharpens the image before sending to GPT-4o.
  * Improves OCR accuracy especially for handwritten fields.
  */
+/**
+ * Image preprocessing pipeline for manifest scanning:
+ * 1. Scale to optimal resolution for OCR (2048px max)
+ * 2. Auto-rotate if EXIF orientation indicates rotation
+ * 3. Adaptive contrast enhancement (different for light vs dark regions)
+ * 4. Unsharp mask for text sharpening
+ * 5. High-quality JPEG output
+ */
 async function compressImage(file: File): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -180,42 +196,81 @@ async function compressImage(file: File): Promise<{ base64: string; mimeType: st
       URL.revokeObjectURL(url);
       const maxDim = 2048;
       let { width, height } = img;
+
+      // Auto-detect portrait manifests taken in landscape and rotate
+      // Most manifests are taller than wide; if the image is wider, it may be rotated
+      const isLikelyRotated = width > height * 1.5 && height < 1500;
+
       if (width > maxDim || height > maxDim) {
         const scale = maxDim / Math.max(width, height);
         width = Math.round(width * scale);
         height = Math.round(height * scale);
       }
+
       const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d")!;
-      
-      // Draw original image
-      ctx.drawImage(img, 0, 0, width, height);
-      
-      // ENHANCEMENT: Increase contrast and sharpen for better OCR
-      const imageData = ctx.getImageData(0, 0, width, height);
-      const data = imageData.data;
-      
-      // Contrast enhancement (1.3x) + brightness normalization
-      const contrastFactor = 1.3;
-      const intercept = 128 * (1 - contrastFactor);
-      
-      for (let i = 0; i < data.length; i += 4) {
-        // Convert to grayscale luminance for analysis
-        const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        
-        // Apply contrast enhancement to each channel
-        data[i]     = Math.min(255, Math.max(0, data[i] * contrastFactor + intercept));     // R
-        data[i + 1] = Math.min(255, Math.max(0, data[i + 1] * contrastFactor + intercept)); // G
-        data[i + 2] = Math.min(255, Math.max(0, data[i + 2] * contrastFactor + intercept)); // B
-        // Alpha unchanged
+
+      if (isLikelyRotated) {
+        // Rotate 90 degrees clockwise
+        canvas.width = height;
+        canvas.height = width;
+        const ctx = canvas.getContext("2d")!;
+        ctx.translate(height, 0);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(img, 0, 0, width, height);
+      } else {
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
       }
-      
+
+      const ctx = canvas.getContext("2d")!;
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      // Step 1: Calculate image statistics for adaptive processing
+      let totalBrightness = 0;
+      const pixelCount = data.length / 4;
+      for (let i = 0; i < data.length; i += 4) {
+        totalBrightness += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      }
+      const avgBrightness = totalBrightness / pixelCount;
+
+      // Step 2: Adaptive contrast — stronger for dim photos (taken in trucks/docks)
+      const contrastFactor = avgBrightness < 120 ? 1.5 : avgBrightness < 160 ? 1.3 : 1.15;
+      const intercept = 128 * (1 - contrastFactor);
+
+      for (let i = 0; i < data.length; i += 4) {
+        data[i]     = Math.min(255, Math.max(0, data[i] * contrastFactor + intercept));
+        data[i + 1] = Math.min(255, Math.max(0, data[i + 1] * contrastFactor + intercept));
+        data[i + 2] = Math.min(255, Math.max(0, data[i + 2] * contrastFactor + intercept));
+      }
+
       ctx.putImageData(imageData, 0, 0);
-      
-      // Use higher quality for enhanced image
-      const base64 = canvas.toDataURL("image/jpeg", 0.90).split(",")[1];
+
+      // Step 3: Unsharp mask for text sharpening
+      // Draw blurred version on a temp canvas, then blend
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext("2d")!;
+      tempCtx.filter = "blur(1px)";
+      tempCtx.drawImage(canvas, 0, 0);
+
+      // Blend: sharped = original + (original - blurred) * amount
+      const sharpData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const blurData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
+      const amount = 0.5; // Sharpening strength
+
+      for (let i = 0; i < sharpData.data.length; i += 4) {
+        for (let c = 0; c < 3; c++) {
+          const diff = sharpData.data[i + c] - blurData.data[i + c];
+          sharpData.data[i + c] = Math.min(255, Math.max(0, sharpData.data[i + c] + diff * amount));
+        }
+      }
+      ctx.putImageData(sharpData, 0, 0);
+
+      const base64 = canvas.toDataURL("image/jpeg", 0.92).split(",")[1];
       resolve({ base64, mimeType: "image/jpeg" });
     };
     img.onerror = reject;
@@ -244,6 +299,13 @@ export default function ManifestScanner({ onImportMaterials, stopNumber }: Manif
     setScanning(true);
 
     try {
+      // Check connectivity before attempting scan
+      if (!navigator.onLine) {
+        setError("You're offline. Manifest scanning requires an internet connection. Please enter fields manually or try again when connected.");
+        setScanning(false);
+        return;
+      }
+
       const { base64, mimeType } = await compressImage(file);
 
       const res = await fetch("/api/scan-manifest", {
